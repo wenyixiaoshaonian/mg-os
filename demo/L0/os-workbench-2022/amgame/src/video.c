@@ -1,6 +1,6 @@
 #include <game.h>
 
-#define SIDE 16
+#define SIDE 8
 static int w, h;
 
 static void init() {
@@ -26,11 +26,14 @@ void splash() {
   init();
   for (int x = 0; x * SIDE <= w; x ++) {
     for (int y = 0; y * SIDE <= h; y++) {
-      if ((x & 1) ^ (y & 1)) {
+      if((x * SIDE == w/2) & (y * SIDE == h/2)) {
+        draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0x000000); // black
+      }
+      else if ((x & 1) ^ (y & 1)) {
         draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xffffff); // white
       }
       else {
-        draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xff0000); // white
+        draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xff0000); // red
       }
     }
   }
