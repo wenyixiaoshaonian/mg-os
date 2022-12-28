@@ -33,12 +33,12 @@ void print_key() {
           ry -= 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
-      case 0x20 + 0x0d:
+      case 0x1e + 0x0d:
         if(rx >0)
         rx -= 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
-      case 0x1e + 0x0d:
+      case 0x20 + 0x0d:
         if(rx * SIDE <= w)
           rx += 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
