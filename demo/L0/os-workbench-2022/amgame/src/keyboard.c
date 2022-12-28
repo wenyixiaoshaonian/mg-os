@@ -24,7 +24,7 @@ void print_key() {
     }
     switch (event.keycode) {
       case 0x1f + 0x0d:
-        if(ry * SIDE <= h)
+        if(ry * SIDE < h)
           ry += 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
@@ -39,7 +39,7 @@ void print_key() {
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
       case 0x20 + 0x0d:
-        if(rx * SIDE <= w)
+        if(rx * SIDE < w)
           rx += 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
