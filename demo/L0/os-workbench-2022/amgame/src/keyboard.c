@@ -5,7 +5,7 @@
 static const char *key_names[] = {
   AM_KEYS(KEYNAME)
 };
-#define SIDE 8
+#define SIDE 16
 extern int rx,ry;
 extern int w, h;
 extern void draw_tile(int x, int y, int w, int h, uint32_t color);
@@ -23,22 +23,22 @@ void print_key() {
       draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0xff0000); // red
     }
     switch (event.keycode) {
-      case 0x11 :
+      case 0x1f :
         if(ry * SIDE <= h)
           ry += 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
-      case 0x1f :
+      case 0x11 :
         if(ry >0)
           ry -= 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
-      case 0x1e :
+      case 0x20 :
         if(rx >0)
         rx -= 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
-      case 0x20 :
+      case 0x1e :
         if(rx * SIDE <= w)
           rx += 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
