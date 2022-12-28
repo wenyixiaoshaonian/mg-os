@@ -23,7 +23,7 @@ void print_key() {
       draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0xff0000); // red
     }
     switch (event.keycode) {
-      case 0x1f :
+      case 0x1 :
         if(ry * SIDE <= h)
           ry += 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
