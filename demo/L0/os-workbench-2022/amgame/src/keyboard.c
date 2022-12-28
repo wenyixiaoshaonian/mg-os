@@ -23,22 +23,22 @@ void print_key() {
       draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0xff0000); // red
     }
     switch (event.keycode) {
-      case 0x1 :
+      case 0x1f - 0x0d:
         if(ry * SIDE <= h)
           ry += 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
-      case 0x11 :
+      case 0x11 - 0x0d:
         if(ry >0)
           ry -= 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
-      case 0x20 :
+      case 0x20 - 0x0d:
         if(rx >0)
         rx -= 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
         break;
-      case 0x1e :
+      case 0x1e - 0x0d:
         if(rx * SIDE <= w)
           rx += 1;
         draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
