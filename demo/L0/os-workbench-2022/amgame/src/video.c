@@ -1,8 +1,8 @@
 #include <game.h>
 
 #define SIDE 8
-static int w, h;
-
+int w, h;
+int rx = 0,ry = 0;
 static void init() {
   AM_GPU_CONFIG_T info = {0};
   ioe_read(AM_GPU_CONFIG, &info);
@@ -10,7 +10,7 @@ static void init() {
   h = info.height;
 }
 
-static void draw_tile(int x, int y, int w, int h, uint32_t color) {
+void draw_tile(int x, int y, int w, int h, uint32_t color) {
   uint32_t pixels[w * h]; // WARNING: large stack-allocated memory
   AM_GPU_FBDRAW_T event = {
     .x = x, .y = y, .w = w, .h = h, .sync = 1,
@@ -28,6 +28,8 @@ void splash() {
     for (int y = 0; y * SIDE <= h; y++) {
       if((x * SIDE == w/2) & (y * SIDE == h/2)) {
         draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0x000000); // black
+        rx = x;
+        ry = y;
       }
       else if ((x & 1) ^ (y & 1)) {
         draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xffffff); // white
