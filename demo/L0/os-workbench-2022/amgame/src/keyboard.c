@@ -2,50 +2,51 @@
 
 #define KEYNAME(key) \
   [AM_KEY_##key] = #key,
-// static const char *key_names[] = {
-//   AM_KEYS(KEYNAME)
-// };
+static const char *key_names[] = {
+  AM_KEYS(KEYNAME)
+};
 #define SIDE 8
 extern int rx,ry;
 extern int w, h;
+extern void draw_tile(int x, int y, int w, int h, uint32_t color);
+
 void print_key() {
   AM_INPUT_KEYBRD_T event = { .keycode = AM_KEY_NONE };
   ioe_read(AM_INPUT_KEYBRD, &event);
   if (event.keycode != AM_KEY_NONE && event.keydown) {
     puts("Key pressed: ");
-    // puts(key_names[event.keycode]);
-    putch(event.keycode);
-    // if ((rx & 1) ^ (ry & 1)) {
-    //     draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0xffffff); // white
-    //   }
-    // else {
-    //   draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0xff0000); // red
-    // }
-    // switch (key_names[event.keycode]) {
-    //   case 'W' :
-    //     if(ry * SIDE <= h)
-    //       ry += 1;
-    //     draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
-    //     break;
-    //   case 'S' :
-    //     if(ry >0)
-    //       ry -= 1;
-    //     draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
-    //     break;
-    //   case 'A' :
-    //     if(rx >0)
-    //     rx -= 1;
-    //     draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
-    //     break;
-    //   case 'D' :
-    //     if(rx * SIDE <= w)
-    //       rx += 1;
-    //     draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
-    //     break;
-    //   default :
-    //     draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
-    //     break;  
-    // }
+    puts(key_names[event.keycode]);
+    if ((rx & 1) ^ (ry & 1)) {
+        draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0xffffff); // white
+      }
+    else {
+      draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0xff0000); // red
+    }
+    switch (event.keycode) {
+      case 0x11 :
+        if(ry * SIDE <= h)
+          ry += 1;
+        draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
+        break;
+      case 0x1f :
+        if(ry >0)
+          ry -= 1;
+        draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
+        break;
+      case 0x1e :
+        if(rx >0)
+        rx -= 1;
+        draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
+        break;
+      case 0x20 :
+        if(rx * SIDE <= w)
+          rx += 1;
+        draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
+        break;
+      default :
+        draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
+        break;  
+    }
     puts("\n");
   }
 }
