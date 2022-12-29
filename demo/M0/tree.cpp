@@ -43,9 +43,11 @@ int tree()
                     if(head == NULL) {
                         head = info;
                         cur = info;
+                        info->next = NULL;
                     } else {
                         cur->next = info;
                         cur = info;
+                        info->next = NULL;
                     }
                     sprintf(cmd, "cat %s/%s | grep %s | grep -v grep | awk '{print $2}'",name2,ptr2->d_name,"Name");
                     file = popen(cmd, "r");
@@ -54,7 +56,7 @@ int tree()
                         return -1;
                     }
                     fgets(info->name, sizeof(char) *64, file);
-                    printf(">>>===111 info->name = %s", info->name);
+                    // printf(">>>===111 info->name = %s", info->name);
 
                     sprintf(cmd, "cat %s/%s | grep %s | grep -v grep | awk '{print $2}'",name2,ptr2->d_name,"Pid");
                     file = popen(cmd, "r");
@@ -64,7 +66,7 @@ int tree()
                     }
                     fgets(val, sizeof(int)*2, file);
                     info->pid = atoi(val);
-                    printf(" info->Pid = %ld", info->pid);
+                    // printf(" info->Pid = %ld", info->pid);
                     sprintf(cmd, "cat %s/%s | grep %s | grep -v grep | awk '{print $2}'",name2,ptr2->d_name,"PPid");
                     file = popen(cmd, "r");
                     if (!file) {
@@ -73,12 +75,17 @@ int tree()
                     }
                     fgets(val, sizeof(int)*2, file);
                     info->ppid = atoi(val);
-                    printf(" info->PPid = %ld \n", info->ppid);
+                    // printf(" info->PPid = %ld \n", info->ppid);
                 }
             }
             strcpy(name2,name);
         }
     }
+    cur = head;
+    do {
+        printf(">>>===111 info->name = %s  info->Pid = %ld  info->PPid = %ld \n", cur->name,cur->pid,cur->ppid);
+        cur = cur->next;
+    }while(cur);
 
     closedir(dir);
 
