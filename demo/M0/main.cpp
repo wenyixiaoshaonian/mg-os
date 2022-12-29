@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+int tree();
 int main() {
-    printf(">>>===111 hello world...\n");
+    tree();
+    return 0;
 }

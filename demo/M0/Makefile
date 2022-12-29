@@ -18,7 +18,7 @@ BIN = tree
 all: $(BIN)
 
 LINK_OBJ = main.o \
-	# coroutine.o \
+	tree.o \
 	# coroutine_scheduler.o \
 
 $(BIN): $(LINK_OBJ)
