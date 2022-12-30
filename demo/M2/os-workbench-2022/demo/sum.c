@@ -7,6 +7,7 @@ long sum = 0;
 void Tsum() {
   for (int i = 0; i < N; i++) {
     sum++;
+    // printf(">>>=== sum = %d\n",sum);
   }
 }
 

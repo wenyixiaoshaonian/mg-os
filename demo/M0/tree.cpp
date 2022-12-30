@@ -16,21 +16,21 @@ struct pro_info {
     char name[64];
     struct pro_info *next;
 };
-int tree() 
+DIR * dir;
+DIR * dir2;
+struct pro_info *head = NULL;
+int create_info(void)
 {
-    DIR * dir;
-    DIR * dir2;
     struct dirent * ptr;
     struct dirent * ptr2;
-    dir = opendir("/proc");
     char name[64] = "/proc/";
     char cmd[512] = { 0 };
-    char buff[512] = { 0 };
     char name2[512] = { 0 };
     FILE *file = NULL;
-    struct pro_info *head = NULL;
     struct pro_info *cur = NULL;
     char val[10] = { 0 };
+
+    dir = opendir("/proc");
     while((ptr = readdir(dir)) != NULL)
     {
         if(ptr->d_type == 4) {
@@ -56,8 +56,6 @@ int tree()
                         return -1;
                     }
                     fgets(info->name, sizeof(char) *64, file);
-                    // printf(">>>===111 info->name = %s", info->name);
-
                     sprintf(cmd, "cat %s/%s | grep %s | grep -v grep | awk '{print $2}'",name2,ptr2->d_name,"Pid");
                     file = popen(cmd, "r");
                     if (!file) {
@@ -66,7 +64,6 @@ int tree()
                     }
                     fgets(val, sizeof(int)*2, file);
                     info->pid = atoi(val);
-                    // printf(" info->Pid = %ld", info->pid);
                     sprintf(cmd, "cat %s/%s | grep %s | grep -v grep | awk '{print $2}'",name2,ptr2->d_name,"PPid");
                     file = popen(cmd, "r");
                     if (!file) {
@@ -75,19 +72,42 @@ int tree()
                     }
                     fgets(val, sizeof(int)*2, file);
                     info->ppid = atoi(val);
-                    // printf(" info->PPid = %ld \n", info->ppid);
                 }
             }
             strcpy(name2,name);
         }
     }
-    cur = head;
+    return 0;
+}
+void show_info(struct pro_info *info)
+{
+    int i = 0;
     do {
-        printf(">>>===111 info->name = %s  info->Pid = %ld  info->PPid = %ld \n", cur->name,cur->pid,cur->ppid);
-        cur = cur->next;
-    }while(cur);
+        printf("num : %d  info->name = %s  info->Pid = %ld  info->PPid = %ld \n", i++,info->name,info->pid,info->ppid);
+        info = info->next;
+    }while(info);
+}
+void release_info(struct pro_info *info)
+{ 
+    if(info->next) {
+        release_info(info->next);
+    }
+    free(info);
+}
+int tree() 
+{
+    int ret;
+    struct pro_info *cur = NULL;
+    ret = create_info();
+    if(ret < 0){
+        printf("create_info error... \n");
+    }
+    cur = head;
+    show_info(cur);
 
+    release_info(head);
     closedir(dir);
-
+    closedir(dir2);
+    
     return 0;
 }
