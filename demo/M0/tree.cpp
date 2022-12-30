@@ -19,6 +19,20 @@ struct pro_info {
 DIR * dir;
 DIR * dir2;
 struct pro_info *head = NULL;
+
+void erase_n(char *name)
+{
+    int i = 0;
+    while(name[i] != '\0') {
+        if(name[i] == '\n')
+        {
+            name[i] = '\0';
+            return;
+        }
+        i++;    
+    }
+}
+
 int create_info(void)
 {
     struct dirent * ptr;
@@ -56,6 +70,7 @@ int create_info(void)
                         return -1;
                     }
                     fgets(info->name, sizeof(char) *64, file);
+                    erase_n(info->name);
                     sprintf(cmd, "cat %s/%s | grep %s | grep -v grep | awk '{print $2}'",name2,ptr2->d_name,"Pid");
                     file = popen(cmd, "r");
                     if (!file) {
@@ -80,12 +95,34 @@ int create_info(void)
     return 0;
 }
 void show_info(struct pro_info *info)
-{
+{ 
+#if 0
     int i = 0;
     do {
         printf("num : %d  info->name = %s  info->Pid = %ld  info->PPid = %ld \n", i++,info->name,info->pid,info->ppid);
         info = info->next;
     }while(info);
+#else
+    struct pro_info *pre;
+    struct pro_info *cur = info;
+    int show_ppid = 0;
+    while(cur) {
+        while(cur) {
+            if(cur->ppid == show_ppid) {
+                printf("%s----",cur->name);
+                show_ppid = cur->pid;
+                cur = cur->next;
+                if(pre)
+                    pre->next = cur->next;         //erase cur info wich is showed
+                break;
+            } else {
+                pre = cur;
+                cur = cur->next;
+            }
+        }
+    }
+    printf("\n");
+#endif
 }
 void release_info(struct pro_info *info)
 { 

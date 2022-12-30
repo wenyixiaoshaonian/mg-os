@@ -10,7 +10,7 @@ STRIP       = $(CROSS_COMPILE)strip
 OBJCOPY     = $(CROSS_COMPILE)objcopy
 OBJDUMP     = $(CROSS_COMPILE)objdump
 
-CFLAGS := -Wall -std=c++11
+CFLAGS := -Wall -std=c++11 -g
 LDFLAGS := -rdynamic
 
 BIN = tree
