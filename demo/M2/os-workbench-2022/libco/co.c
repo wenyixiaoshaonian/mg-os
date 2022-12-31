@@ -1,5 +1,6 @@
 #include "co.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #define LOCAL_MACHINE
 #define STACK_SIZE 64*1024
@@ -92,33 +93,33 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   cur->func = func;
   cur->arg = arg;
 
-  cur->statu = CO_NEW;
+  cur->status = CO_NEW;
 
   cur->stack = malloc(STACK_SIZE);
 
   cur->context = (ctx_t *)malloc(sizeof(ctx_t));
-  cur->context.rbp = stack;
-  cur->context.rsp = stack + STACK_SIZE - (sizeof(void *)*2);
+  cur->context->rbp = stack;
+  cur->context->rsp = stack + STACK_SIZE - (sizeof(void *)*2);
 
-  cur->context.rip = func(cur->arg);
+  cur->context->rip = func(cur->arg);
 
   return cur;
 }
 
 void co_wait(struct co *co) {
   while(1) {
-    if (co->statu == CO_NEW) {
+    if (co->status == CO_NEW) {
       _switch(main_ctx,co->context);
     }
-    else if (co->statu == CO_RUNNING) {
+    else if (co->status == CO_RUNNING) {
       
     }
-    else if (co->statu == CO_WAITING) {
+    else if (co->status == CO_WAITING) {
       
     }
-    else if (co->statu == CO_DEAD) {
-      free(cur->stack);
-      free(cur->co);
+    else if (co->status == CO_DEAD) {
+      free(co->stack);
+      free(co);
       printf(">>>=== bye......\n");
     }
   }
