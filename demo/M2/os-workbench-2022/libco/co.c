@@ -118,6 +118,7 @@ void _exec() {
   cur_run->func(cur_run->arg);
   cur_run->status = CO_DEAD;
   printf(">>>=== CO_DEAD......\n");
+  _switch(co->context,main_ctx);
 }
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   if(!main_ctx) {
