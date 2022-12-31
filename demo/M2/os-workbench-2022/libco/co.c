@@ -117,6 +117,7 @@ void _exec() {
   struct co_list *cur = NULL;
   cur_run->func(cur_run->arg);
   cur_run->status = CO_DEAD;
+  printf(">>>=== CO_DEAD......\n");
 }
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   if(!main_ctx) {
@@ -164,6 +165,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 
 void co_wait(struct co *co) {
   while(1) {
+    printf(">>>=== co_wait......\n");
     if (co->status == CO_NEW) {
       // printf("main_ctx %p  co->context %p \n",main_ctx,co->context);
       cur_run = co;
