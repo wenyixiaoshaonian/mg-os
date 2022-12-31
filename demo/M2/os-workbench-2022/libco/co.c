@@ -194,7 +194,7 @@ void co_wait(struct co *co) {
 void co_yield() {
   struct co_list *flist = list;
   // cur_run->status = CO_RUNNING;
-
+  printf(">>>=== co_yield......\n");
   while(flist) {
     if (flist->co->status == CO_NEW) {
       ctx_t context = *(cur_run->context);
