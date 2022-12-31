@@ -190,7 +190,7 @@ void co_wait(struct co *co) {
 
 void co_yield() {
   struct co_list *flist = list;
-  int prv_status;
+  int prv_status = CO_WAITING;
   if(cur_run->status == CO_WAITING)
     prv_status = CO_RUNNING;
   else if (cur_run->status == CO_RUNNING)
