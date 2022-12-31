@@ -113,7 +113,15 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
 }
 
 void _exec() {
+  struct co_list *cur = NULL;
   printf(">>>=== hello......\n");
+  cur = list;
+  while(cur) {
+    if(cur->co->status == CO_NEW) {
+      cur->co->func(cur->arg);
+    }
+  }
+  printf(">>>=== _exec error......\n");
 }
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   if(!main_ctx) {
