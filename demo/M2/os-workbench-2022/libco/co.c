@@ -58,7 +58,7 @@ struct co_list {
 
 ctx_t *main_ctx = NULL;
 struct co_list *list = NULL;
-struct co_list *cur = NULL;
+struct co_list *cur_list = NULL;
 /*
  * %rdi: this, %rsi: cur_ctx, %rdx: new_ctx
  * save current context to parameter_1: cur_ctx, switch context to parameter_2: new_ctx
@@ -92,7 +92,6 @@ void _exec() {
 
 }
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
-
   if(!main_ctx) {
     main_ctx = (ctx_t *)malloc(sizeof(ctx_t));
   }
@@ -117,11 +116,13 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     list = (struct co_list *)malloc(sizeof(struct co_list));
     list->co = cur;
     list->next = NULL;
-    cur = list;
+    list = cur_list;
   } else {
-    cur->next = co;
-    cur = co;
-    cur->next = NULL;
+    struct co_list *clist = (struct co_list *)malloc(sizeof(struct co_list));
+    clist->co = cur;
+    cur_list->next = clist;
+    cur_list = clist;
+    cur_list->next = NULL;
   }
   return cur;
 }
