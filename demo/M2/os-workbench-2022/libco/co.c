@@ -25,10 +25,10 @@ typedef struct {
     void *ebp;
     void *eip;
     void *ebx;
-    void *r12d;
-    void *r13d;
-    void *r14d;
-    void *r15d;
+    void *r12D;
+    void *r13D;
+    void *r14D;
+    void *r15D;
 #endif
 } ctx_t;
 
@@ -94,10 +94,10 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
     "       movl (%esp), %eax           \n"
     "       movl %eax, 16(%esi)         \n"    // save pc pointer
     "       movl %ebx, 24(%esi)         \n"    // save rbx, r12 - r15
-    "       movl "r12d", 32(%esi)         \n"
-    "       movl %r13d, 40(%esi)         \n"
-    "       movl %r14d, 48(%esi)         \n"
-    "       movl %r15d, 56(%esi)         \n"
+    "       movl %r12D, 32(%esi)         \n"
+    "       movl %r13D, 40(%esi)         \n"
+    "       movl %r14D, 48(%esi)         \n"
+    "       movl %r15D, 56(%esi)         \n"
     "       movl 56(%edx), %r15d         \n"
     "       movl 48(%edx), %r14d         \n"
     "       movl 40(%edx), %r13d         \n"    // restore rbx, r12 - r15
