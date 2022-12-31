@@ -116,6 +116,7 @@ void _exec() {
   struct co_list *cur = NULL;
   printf(">>>=== hello......\n");
   cur = list;
+  printf(">>== name : %s \n",cur->co->name)
   while(cur) {
     if(cur->co->status == CO_NEW) {
       cur->co->func(cur->co->arg);
