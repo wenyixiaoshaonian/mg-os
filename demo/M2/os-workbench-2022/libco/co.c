@@ -147,6 +147,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   cur->context->eip = (void *)_exec;
 #endif
   //add co into list
+  // printf(">>>===aaaaa cur : %p\n",cur);
   if(!list) {
     list = (struct co_list *)malloc(sizeof(struct co_list));
     list->co = cur;
@@ -190,11 +191,8 @@ void co_wait(struct co *co) {
 
 void co_yield() {
   struct co_list *flist = list;
-  int prv_status = CO_WAITING;
-  if(cur_run->status == CO_WAITING)
-    prv_status = CO_RUNNING;
-  else if (cur_run->status == CO_RUNNING)
-    prv_status = CO_WAITING;
+  // cur_run->status = CO_RUNNING;
+  // printf(">>>=== co_yield......\n");
   while(flist) {
     if (flist->co->status == CO_NEW) {
       printf(">>>=== co_yield  CO_NEW......\n");
@@ -202,18 +200,27 @@ void co_yield() {
       flist->co->status = CO_RUNNING;
       cur_run = flist->co;
       _switch(&context,cur_run->context);
-      return;
     }
-    else if (flist->co->status == prv_status) {
-      printf(">>>=== co_yield  prv_status......\n");
+    else if (flist->co->status == CO_WAITING) {
+      printf(">>>=== co_yield  CO_WAITING......\n");
+      if(flist->co == cur_run)
+        break;
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
-      return;
     }
-    flist = flist->next;
+    else if (flist->co->status == CO_RUNNING) {
+      printf(">>>=== co_yield  CO_RUNNING......\n");
+      if(flist->co == cur_run)
+        break;
+      ctx_t context = *(cur_run->context);
+      cur_run = flist->co;
+      _switch(&context,cur_run->context);
+    }
+    else {
+      flist = flist->next;
+    }
   }
   printf(">>>=== co_yield continue......\n");
   _switch(cur_run->context,main_ctx);
-  return;
 }
