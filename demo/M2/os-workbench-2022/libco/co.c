@@ -57,6 +57,7 @@ struct co_list {
 };
 
 ctx_t *main_ctx = NULL;
+struct co *cur_run = NULL;
 struct co_list *list = NULL;
 struct co_list *cur_list = NULL;
 /*
@@ -114,16 +115,8 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
 
 void _exec() {
   struct co_list *cur = NULL;
-  printf(">>>=== hello......\n");
-  cur = list;
-  printf(">>>===111 list->co : %p\n",list->co);
-  printf(">>== name : %s \n",list->co->name);
-  while(cur) {
-    if(cur->co->status == CO_NEW) {
-      cur->co->func(cur->co->arg);
-    }
-  }
-  printf(">>>=== _exec error......\n");
+  cur_run->func(cur_run->arg);
+  cur_run->status = CO_DEAD;
 }
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   if(!main_ctx) {
@@ -157,7 +150,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     list->co = cur;
     list->next = NULL;
     cur_list = list;
-    printf(">>>===111 cur : %p\n",list->co);
+    // printf(">>>===111 cur : %p\n",list->co);
   } else {
     struct co_list *clist = (struct co_list *)malloc(sizeof(struct co_list));
     clist->co = cur;
@@ -173,6 +166,7 @@ void co_wait(struct co *co) {
   while(1) {
     if (co->status == CO_NEW) {
       // printf("main_ctx %p  co->context %p \n",main_ctx,co->context);
+      cur_run = co;
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_RUNNING) {
@@ -191,5 +185,6 @@ void co_wait(struct co *co) {
 }
 
 void co_yield() {
-
+  cur_run->status = CO_RUNNING;
+  printf(">>>=== co_yield......\n");
 }
