@@ -98,15 +98,15 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
     "       movl %r13d, 40(%esi)         \n"
     "       movl %r14d, 48(%esi)         \n"
     "       movl %r15d, 56(%esi)         \n"
-    "       movl 56(%rdx), %r15         \n"
-    "       movl 48(%rdx), %r14         \n"
-    "       movl 40(%rdx), %r13         \n"    // restore rbx, r12 - r15
-    "       movl 32(%rdx), %r12         \n"
-    "       movl 24(%rdx), %rbx         \n"
-    "       movl 8(%rdx), %rbp          \n"    // restore frame pointer 
-    "       movl 0(%rdx), %rsp          \n"    // restore stack pointer
-    "       movl 16(%rdx), %rax         \n"    // restore pc pointer
-    "       movl %rax, (%rsp)           \n"    // push pc pointer in stack
+    "       movl 56(%edx), %r15d         \n"
+    "       movl 48(%edx), %r14d         \n"
+    "       movl 40(%edx), %r13d         \n"    // restore rbx, r12 - r15
+    "       movl 32(%edx), %r12d         \n"
+    "       movl 24(%edx), %ebx         \n"
+    "       movl 8(%edx), %ebp          \n"    // restore frame pointer 
+    "       movl 0(%edx), %esp          \n"    // restore stack pointer
+    "       movl 16(%edx), %eax         \n"    // restore pc pointer
+    "       movl %eax, (%esp)           \n"    // push pc pointer in stack
     "       ret                           "
     );
 #endif
