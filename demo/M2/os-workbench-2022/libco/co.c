@@ -67,23 +67,23 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
 {
 #ifdef __x86_64__
     __asm__ __volatile__ (
-    "       movq %rsp, 0(%rsi)          \n"    // save stack pointer
-    "       movq %rbp, 8(%rsi)          \n"    // save frame pointer
+    "       movq %rsp, 0(%rdi)          \n"    // save stack pointer
+    "       movq %rbp, 8(%rdi)          \n"    // save frame pointer
     "       movq (%rsp), %rax           \n"
-    "       movq %rax, 16(%rsi)         \n"    // save pc pointer
-    "       movq %rbx, 24(%rsi)         \n"    // save rbx, r12 - r15
-    "       movq %r12, 32(%rsi)         \n"
-    "       movq %r13, 40(%rsi)         \n"
-    "       movq %r14, 48(%rsi)         \n"
-    "       movq %r15, 56(%rsi)         \n"
-    "       movq 56(%rdx), %r15         \n"
-    "       movq 48(%rdx), %r14         \n"
-    "       movq 40(%rdx), %r13         \n"    // restore rbx, r12 - r15
-    "       movq 32(%rdx), %r12         \n"
-    "       movq 24(%rdx), %rbx         \n"
-    "       movq 8(%rdx), %rbp          \n"    // restore frame pointer 
-    "       movq 0(%rdx), %rsp          \n"    // restore stack pointer
-    "       movq 16(%rdx), %rax         \n"    // restore pc pointer
+    "       movq %rax, 16(%rdi)         \n"    // save pc pointer
+    "       movq %rbx, 24(%rdi)         \n"    // save rbx, r12 - r15
+    "       movq %r12, 32(%rdi)         \n"
+    "       movq %r13, 40(%rdi)         \n"
+    "       movq %r14, 48(%rdi)         \n"
+    "       movq %r15, 56(%rdi)         \n"
+    "       movq 56(%rsi), %r15         \n"
+    "       movq 48(%rsi), %r14         \n"
+    "       movq 40(%rsi), %r13         \n"    // restore rbx, r12 - r15
+    "       movq 32(%rsi), %r12         \n"
+    "       movq 24(%rsi), %rbx         \n"
+    "       movq 8(%rsi), %rbp          \n"    // restore frame pointer 
+    "       movq 0(%rsi), %rsp          \n"    // restore stack pointer
+    "       movq 16(%rsi), %rax         \n"    // restore pc pointer
     "       movq %rax, (%rsp)           \n"    // push pc pointer in stack
     "       ret                           "
     );
