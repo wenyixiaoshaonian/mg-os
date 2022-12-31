@@ -11,7 +11,7 @@
   #define debug()
 #endif
 typedef struct {
-#ifdef USE_x64
+#ifdef __x86_64__
     void *rsp;
     void *rbp;
     void *rip;
@@ -20,7 +20,7 @@ typedef struct {
     void *r13;
     void *r14;
     void *r15;
-#elif USE_i386
+#elif __i386__
     void *esp;
     void *ebp;
     void *eip;
@@ -106,11 +106,17 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   cur->stack = malloc(STACK_SIZE);
 
   cur->context = (ctx_t *)malloc(sizeof(ctx_t));
+#ifdef __x86_64__  
   cur->context->rbp = cur->stack;
   cur->context->rsp = cur->stack + STACK_SIZE - (sizeof(void *)*2);
 
   cur->context->rip = (void *)_exec;
+#elif __i386__
+  cur->context->ebp = cur->stack;
+  cur->context->esp = cur->stack + STACK_SIZE - (sizeof(void *)*2);
 
+  cur->context->eip = (void *)_exec;
+#endif
   //add co into list
   if(!list) {
     list = (struct co_list *)malloc(sizeof(struct co_list));
