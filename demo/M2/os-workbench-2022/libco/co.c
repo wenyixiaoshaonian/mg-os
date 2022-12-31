@@ -84,7 +84,7 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 
   if(!main_ctx) {
-    main_ctx = (ctx_t *)malloc(ctx_t);
+    main_ctx = (ctx_t *)malloc(sizeof(ctx_t));
   }
   struct co *cur = (struct co *)malloc(sizeof(struct co));
 
@@ -96,7 +96,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 
   cur->stack = malloc(STACK_SIZE);
 
-  cur->context = (ctx_t *)malloc(ctx_t);
+  cur->context = (ctx_t *)malloc(sizeof(ctx_t));
   cur->context.rbp = stack;
   cur->context.rsp = stack + STACK_SIZE - (sizeof(void *)*2);
 
