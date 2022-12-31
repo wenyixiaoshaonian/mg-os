@@ -173,7 +173,8 @@ void co_wait(struct co *co) {
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_RUNNING) {
-      
+      printf(">>>=== CO_RUNNING......\n");
+      _switch(main_ctx,co->context);
     }
     else if (co->status == CO_WAITING) {
       
@@ -190,4 +191,5 @@ void co_wait(struct co *co) {
 void co_yield() {
   cur_run->status = CO_RUNNING;
   printf(">>>=== co_yield......\n");
+  _switch(cur_run->context,main_ctx);
 }
