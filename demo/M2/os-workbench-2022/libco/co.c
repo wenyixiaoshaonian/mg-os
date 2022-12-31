@@ -98,8 +98,8 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   cur->stack = malloc(STACK_SIZE);
 
   cur->context = (ctx_t *)malloc(sizeof(ctx_t));
-  cur->context->rbp = stack;
-  cur->context->rsp = stack + STACK_SIZE - (sizeof(void *)*2);
+  cur->context->rbp = cur->stack;
+  cur->context->rsp = cur->stack + STACK_SIZE - (sizeof(void *)*2);
 
   cur->context->rip = func(cur->arg);
 
