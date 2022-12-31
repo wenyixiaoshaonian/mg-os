@@ -116,7 +116,8 @@ void _exec() {
   struct co_list *cur = NULL;
   printf(">>>=== hello......\n");
   cur = list;
-  printf(">>== name : %s \n",cur->co->name);
+  printf(">>>===111 list->co : %p\n",list->co);
+  printf(">>== name : %s \n",list->co->name);
   while(cur) {
     if(cur->co->status == CO_NEW) {
       cur->co->func(cur->co->arg);
@@ -156,7 +157,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     list->co = cur;
     list->next = NULL;
     list = cur_list;
-    printf(">>>===111 \n");
+    printf(">>>===111 list->co : %p\n",list->co);
   } else {
     struct co_list *clist = (struct co_list *)malloc(sizeof(struct co_list));
     clist->co = cur;
