@@ -202,15 +202,18 @@ void co_yield() {
       flist->co->status = CO_RUNNING;
       cur_run = flist->co;
       _switch(&context,cur_run->context);
+      return;
     }
     else if (flist->co->status == prv_status) {
       printf(">>>=== co_yield  prv_status......\n");
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
+      return;
     }
     flist = flist->next;
   }
   printf(">>>=== co_yield continue......\n");
   _switch(cur_run->context,main_ctx);
+  return;
 }
