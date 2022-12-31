@@ -56,7 +56,7 @@ struct co {
  * %rdi: this, %rsi: cur_ctx, %rdx: new_ctx
  * save current context to parameter_1: cur_ctx, switch context to parameter_2: new_ctx
  */
-void switch(ctx_t *ctx_t, ctx_t *ctx_t)
+void _switch(ctx_t *ctx_t, ctx_t *ctx_t)
 {
     __asm__ __volatile__ (
     "       movq %rsp, 0(%rsi)          \n"    // save stack pointer
@@ -108,7 +108,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 void co_wait(struct co *co) {
   while(1) {
     if (co->statu == CO_NEW) {
-      switch(main_ctx,co->context);
+      _switch(main_ctx,co->context);
     }
     else if (co->statu == CO_RUNNING) {
       
