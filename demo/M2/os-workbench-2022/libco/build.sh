@@ -1,4 +1,4 @@
 make clean
-make
-cd tests
-./libco-test-64
+make && cd tests && gdb libco-test-64
+
+# ./libco-test-64
