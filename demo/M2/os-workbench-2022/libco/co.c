@@ -101,7 +101,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   cur->context->rbp = cur->stack;
   cur->context->rsp = cur->stack + STACK_SIZE - (sizeof(void *)*2);
 
-  cur->context->rip = func(cur->arg);
+  cur->context->rip = (void *)func(cur->arg);
 
   return cur;
 }
