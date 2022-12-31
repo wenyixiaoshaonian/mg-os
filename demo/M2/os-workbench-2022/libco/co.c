@@ -65,6 +65,7 @@ struct co_list *cur_list = NULL;
  */
 void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
 {
+#ifdef __x86_64__
     __asm__ __volatile__ (
     "       movq %rsp, 0(%rsi)          \n"    // save stack pointer
     "       movq %rbp, 8(%rsi)          \n"    // save frame pointer
@@ -86,6 +87,29 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
     "       movq %rax, (%rsp)           \n"    // push pc pointer in stack
     "       ret                           "
     );
+#elif __i386__
+    __asm__ __volatile__ (
+    "       movq %esp, 0(%esi)          \n"    // save stack pointer
+    "       movq %ebp, 8(%esi)          \n"    // save frame pointer
+    "       movq (%esp), %eax           \n"
+    "       movq %eax, 16(%esi)         \n"    // save pc pointer
+    "       movq %ebx, 24(%esi)         \n"    // save rbx, r12 - r15
+    "       movq %r12d, 32(%esi)         \n"
+    "       movq %r13d, 40(%esi)         \n"
+    "       movq %r14d, 48(%esi)         \n"
+    "       movq %r15d, 56(%esi)         \n"
+    "       movq 56(%rdx), %r15         \n"
+    "       movq 48(%rdx), %r14         \n"
+    "       movq 40(%rdx), %r13         \n"    // restore rbx, r12 - r15
+    "       movq 32(%rdx), %r12         \n"
+    "       movq 24(%rdx), %rbx         \n"
+    "       movq 8(%rdx), %rbp          \n"    // restore frame pointer 
+    "       movq 0(%rdx), %rsp          \n"    // restore stack pointer
+    "       movq 16(%rdx), %rax         \n"    // restore pc pointer
+    "       movq %rax, (%rsp)           \n"    // push pc pointer in stack
+    "       ret                           "
+    );
+#endif
 }
 
 void _exec() {
