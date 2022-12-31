@@ -147,20 +147,17 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   cur->context->eip = (void *)_exec;
 #endif
   //add co into list
-  // printf(">>>===aaaaa cur : %p\n",cur);
   if(!list) {
     list = (struct co_list *)malloc(sizeof(struct co_list));
     list->co = cur;
     list->next = NULL;
     cur_list = list;
-    printf(">>>===111 cur_list->co : %p\n",cur_list->co);
   } else {
     struct co_list *clist = (struct co_list *)malloc(sizeof(struct co_list));
     clist->co = cur;
     cur_list->next = clist;
     cur_list = clist;
     cur_list->next = NULL;
-    printf(">>>===222 cur_list->co : %p\n",cur_list->co);
   }
   return cur;
 }
@@ -205,8 +202,8 @@ void co_yield() {
     }
     else if (flist->co->status == CO_WAITING) {
       printf(">>>=== co_yield  CO_WAITING......\n");
-      if(flist->co == cur_run)
-        break;
+      if(flist->co == cur_run) 
+        continue;
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
@@ -214,7 +211,7 @@ void co_yield() {
     else if (flist->co->status == CO_RUNNING) {
       printf(">>>=== co_yield  CO_RUNNING......\n");
       if(flist->co == cur_run)
-        break;
+        continue;
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
