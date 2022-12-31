@@ -32,8 +32,6 @@ typedef struct {
 #endif
 } ctx_t;
 
-ctx_t *main_ctx = NULL;
-
 enum co_status {
   CO_NEW = 1, // 新创建，还未执行过
   CO_RUNNING, // 已经执行过
@@ -53,6 +51,14 @@ struct co {
   // uint8_t        stack[STACK_SIZE]; // 协程的堆栈
 };
 
+struct co_list {
+  struct co *co;
+  struct co_list *next;
+};
+
+ctx_t *main_ctx = NULL;
+struct co_list *list = NULL;
+struct co_list *cur = NULL;
 /*
  * %rdi: this, %rsi: cur_ctx, %rdx: new_ctx
  * save current context to parameter_1: cur_ctx, switch context to parameter_2: new_ctx
@@ -82,6 +88,9 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
     );
 }
 
+void _exec() {
+
+}
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 
   if(!main_ctx) {
@@ -101,8 +110,19 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   cur->context->rbp = cur->stack;
   cur->context->rsp = cur->stack + STACK_SIZE - (sizeof(void *)*2);
 
-  cur->context->rip = (void *)func;
+  cur->context->rip = (void *)_exec;
 
+  //add co into list
+  if(!list) {
+    list = (struct co_list *)malloc(sizeof(struct co_list));
+    list->co = cur;
+    list->next = NULL;
+    cur = list;
+  } else {
+    cur->next = co;
+    cur = co;
+    cur->next = NULL;
+  }
   return cur;
 }
 
@@ -121,6 +141,7 @@ void co_wait(struct co *co) {
       free(co->stack);
       free(co);
       printf(">>>=== bye......\n");
+      return;
     }
   }
 }
