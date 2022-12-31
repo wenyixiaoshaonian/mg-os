@@ -25,7 +25,7 @@ typedef struct {
     void *ebp;
     void *eip;
     void *ebx;
-    void *r12d;
+    void *r12;
     void *r13d;
     void *r14d;
     void *r15d;
