@@ -88,27 +88,7 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
     "       ret                           "
     );
 #elif __i386__
-    __asm__ __volatile__ (
-    "       movl %esp, 0(%esi)          \n"    // save stack pointer
-    "       movl %ebp, 4(%esi)          \n"    // save frame pointer
-    "       movl (%esp), %eax           \n"
-    "       movl %eax, 8(%esi)         \n"    // save pc pointer
-    "       movl %ebx, 12(%esi)         \n"    // save rbx, r12 - r15
-    "       movl %r12, 16(%esi)         \n"
-    "       movl %r13d, 20(%esi)         \n"
-    "       movl %r14d, 24(%esi)         \n"
-    "       movl %r15d, 28(%esi)         \n"
-    "       movl 28(%edx), %r15d         \n"
-    "       movl 24(%edx), %r14d         \n"
-    "       movl 20(%edx), %r13d         \n"    // restore rbx, r12 - r15
-    "       movl 16(%edx), %r12d         \n"
-    "       movl 12(%edx), %ebx         \n"
-    "       movl 4(%edx), %ebp          \n"    // restore frame pointer 
-    "       movl 0(%edx), %esp          \n"    // restore stack pointer
-    "       movl 8(%edx), %eax         \n"    // restore pc pointer
-    "       movl %eax, (%esp)           \n"    // push pc pointer in stack
-    "       ret                           "
-    );
+
 #endif
 }
 
