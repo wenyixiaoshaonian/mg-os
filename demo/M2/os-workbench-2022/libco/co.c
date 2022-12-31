@@ -190,8 +190,7 @@ void co_wait(struct co *co) {
 
 void co_yield() {
   struct co_list *flist = list;
-  // cur_run->status = CO_RUNNING;
-  // printf(">>>=== co_yield......\n");
+  int flag = 0;
   while(flist) {
     if (flist->co->status == CO_NEW) {
       printf(">>>=== co_yield  CO_NEW......\n");
@@ -202,20 +201,32 @@ void co_yield() {
     }
     else if (flist->co->status == CO_WAITING) {
       printf(">>>=== co_yield  CO_WAITING......\n");
-      if(flist->co == cur_run) {
-        flist = flist->next;
-        continue;
+      if(!flag) {
+        if(flist->co == cur_run) {
+          if(flist->next) {
+            flist = flist->next;
+            flag = 1;
+          }
+          continue;
+        }
       }
+      flag = 0;
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
     }
     else if (flist->co->status == CO_RUNNING) {
       printf(">>>=== co_yield  CO_RUNNING......\n");
-      if(flist->co == cur_run) {
-        flist = flist->next;
-        continue;
+      if(!flag) {
+        if(flist->co == cur_run) {
+          if(flist->next) {
+            flist = flist->next;
+            flag = 1;
+          }
+          continue;
+        }
       }
+      flag = 0;
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
