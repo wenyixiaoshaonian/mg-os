@@ -118,6 +118,7 @@ void _exec() {
   cur_run->func(cur_run->arg);
   cur_run->status = CO_DEAD;
   printf(">>>=== CO_DEAD......\n");
+  cur_run = NULL;
   _switch(cur_run->context,main_ctx);
 }
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
@@ -165,11 +166,12 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 }
 
 void co_wait(struct co *co) {
+  struct co_list *flist = list;
   while(1) {
-    printf(">>>=== co_wait......\n");
     if (co->status == CO_NEW) {
       // printf("main_ctx %p  co->context %p \n",main_ctx,co->context);
       cur_run = co;
+      co->status = CO_WAITING;
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_RUNNING) {
@@ -177,7 +179,8 @@ void co_wait(struct co *co) {
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_WAITING) {
-      
+      printf(">>>=== CO_WAITING......\n");
+      _switch(main_ctx,co->context);
     }
     else if (co->status == CO_DEAD) {
       free(co->stack);
@@ -189,7 +192,29 @@ void co_wait(struct co *co) {
 }
 
 void co_yield() {
-  cur_run->status = CO_RUNNING;
-  printf(">>>=== co_yield......\n");
+  struct co_list *flist = list;
+  // cur_run->status = CO_RUNNING;
+
+  while(flist) {
+    if (flist->co->status == CO_NEW) {
+      ctx_t context = *(cur_run->context);
+      flist->co->status = CO_RUNNING;
+      cur_run = flist->co;
+      _switch(context,cur_run->context);
+    }
+    else if (flist->co->status == CO_WAITING) {
+      ctx_t context = *(cur_run->context);
+      cur_run = flist->co;
+      _switch(context,cur_run->context);
+    }
+    else if (flist->co->status == CO_RUNNING) {
+      ctx_t context = *(cur_run->context);
+      cur_run = flist->co;
+      _switch(context,cur_run->context);
+    }
+    else {
+      flist = flist->next;
+    }
+  }
   _switch(cur_run->context,main_ctx);
 }
