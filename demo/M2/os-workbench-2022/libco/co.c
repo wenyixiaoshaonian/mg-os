@@ -200,17 +200,17 @@ void co_yield() {
       ctx_t context = *(cur_run->context);
       flist->co->status = CO_RUNNING;
       cur_run = flist->co;
-      _switch(context,cur_run->context);
+      _switch(&context,cur_run->context);
     }
     else if (flist->co->status == CO_WAITING) {
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
-      _switch(context,cur_run->context);
+      _switch(&context,cur_run->context);
     }
     else if (flist->co->status == CO_RUNNING) {
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
-      _switch(context,cur_run->context);
+      _switch(&context,cur_run->context);
     }
     else {
       flist = flist->next;
