@@ -25,7 +25,7 @@ typedef struct {
     void *ebp;
     void *eip;
     void *ebx;
-    void *r12;
+    void *r12d;
     void *r13d;
     void *r14d;
     void *r15d;
@@ -94,7 +94,7 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
     "       movl (%esp), %eax           \n"
     "       movl %eax, 16(%esi)         \n"    // save pc pointer
     "       movl %ebx, 24(%esi)         \n"    // save rbx, r12 - r15
-    "       movl %r12, 32(%esi)         \n"
+    "       movl "%r12d", 32(%esi)         \n"
     "       movl %r13d, 40(%esi)         \n"
     "       movl %r14d, 48(%esi)         \n"
     "       movl %r15d, 56(%esi)         \n"
