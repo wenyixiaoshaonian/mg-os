@@ -11,7 +11,7 @@
   #define debug()
 #endif
 typedef struct {
-#ifdef __x86_64__
+#ifdef USE_x64
     void *rsp;
     void *rbp;
     void *rip;
@@ -20,7 +20,7 @@ typedef struct {
     void *r13;
     void *r14;
     void *r15;
-#else
+#elif USE_i386
     void *esp;
     void *ebp;
     void *eip;
