@@ -31,7 +31,7 @@ typedef struct {
 #endif
 } ctx_t;
 
-ctx_t *context main_ctx = NULL;
+// ctx_t *context main_ctx = NULL;
 
 enum co_status {
   CO_NEW = 1, // 新创建，还未执行过
@@ -108,7 +108,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 void co_wait(struct co *co) {
   while(1) {
     if (co->statu == CO_NEW) {
-      switch(main_ctx,co->context);
+      // switch(main_ctx,co->context);
     }
     else if (co->statu == CO_RUNNING) {
       
