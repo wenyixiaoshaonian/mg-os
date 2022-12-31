@@ -157,7 +157,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     list->co = cur;
     list->next = NULL;
     list = cur_list;
-    printf(">>>===111 list->co : %p\n",list->co);
+    printf(">>>===111 cur : %p\n",cur);
   } else {
     struct co_list *clist = (struct co_list *)malloc(sizeof(struct co_list));
     clist->co = cur;
