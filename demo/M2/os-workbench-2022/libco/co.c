@@ -160,6 +160,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 void co_wait(struct co *co) {
   while(1) {
     if (co->status == CO_NEW) {
+      printf("main_ctx %p  co->context %p \n",main_ctx,co->context);
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_RUNNING) {
