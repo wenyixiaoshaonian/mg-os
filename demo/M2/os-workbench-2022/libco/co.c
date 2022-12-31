@@ -89,24 +89,24 @@ void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
     );
 #elif __i386__
     __asm__ __volatile__ (
-    "       movq %esp, 0(%esi)          \n"    // save stack pointer
-    "       movq %ebp, 8(%esi)          \n"    // save frame pointer
-    "       movq (%esp), %eax           \n"
-    "       movq %eax, 16(%esi)         \n"    // save pc pointer
-    "       movq %ebx, 24(%esi)         \n"    // save rbx, r12 - r15
-    "       movq %r12d, 32(%esi)         \n"
-    "       movq %r13d, 40(%esi)         \n"
-    "       movq %r14d, 48(%esi)         \n"
-    "       movq %r15d, 56(%esi)         \n"
-    "       movq 56(%rdx), %r15         \n"
-    "       movq 48(%rdx), %r14         \n"
-    "       movq 40(%rdx), %r13         \n"    // restore rbx, r12 - r15
-    "       movq 32(%rdx), %r12         \n"
-    "       movq 24(%rdx), %rbx         \n"
-    "       movq 8(%rdx), %rbp          \n"    // restore frame pointer 
-    "       movq 0(%rdx), %rsp          \n"    // restore stack pointer
-    "       movq 16(%rdx), %rax         \n"    // restore pc pointer
-    "       movq %rax, (%rsp)           \n"    // push pc pointer in stack
+    "       movl %esp, 0(%esi)          \n"    // save stack pointer
+    "       movl %ebp, 8(%esi)          \n"    // save frame pointer
+    "       movl (%esp), %eax           \n"
+    "       movl %eax, 16(%esi)         \n"    // save pc pointer
+    "       movl %ebx, 24(%esi)         \n"    // save rbx, r12 - r15
+    "       movl %r12d, 32(%esi)         \n"
+    "       movl %r13d, 40(%esi)         \n"
+    "       movl %r14d, 48(%esi)         \n"
+    "       movl %r15d, 56(%esi)         \n"
+    "       movl 56(%rdx), %r15         \n"
+    "       movl 48(%rdx), %r14         \n"
+    "       movl 40(%rdx), %r13         \n"    // restore rbx, r12 - r15
+    "       movl 32(%rdx), %r12         \n"
+    "       movl 24(%rdx), %rbx         \n"
+    "       movl 8(%rdx), %rbp          \n"    // restore frame pointer 
+    "       movl 0(%rdx), %rsp          \n"    // restore stack pointer
+    "       movl 16(%rdx), %rax         \n"    // restore pc pointer
+    "       movl %rax, (%rsp)           \n"    // push pc pointer in stack
     "       ret                           "
     );
 #endif
