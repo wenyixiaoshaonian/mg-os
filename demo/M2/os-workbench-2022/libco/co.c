@@ -20,7 +20,7 @@ typedef struct {
     void *r13;
     void *r14;
     void *r15;
-#elif __i386__
+#elif __x86__
     void *esp;
     void *ebp;
     void *eip;
