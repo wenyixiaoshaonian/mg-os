@@ -148,7 +148,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   cur->context->eip = (void *)_exec;
 #endif
   //add co into list
-  printf(">>>===aaaaa cur : %p\n",cur);
+  // printf(">>>===aaaaa cur : %p\n",cur);
   if(!list) {
     list = (struct co_list *)malloc(sizeof(struct co_list));
     list->co = cur;
@@ -161,7 +161,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     cur_list->next = clist;
     cur_list = clist;
     cur_list->next = NULL;
-    printf(">>>===111 cur_list->co : %p\n",cur_list->co);
+    printf(">>>===222 cur_list->co : %p\n",cur_list->co);
   }
   return cur;
 }
