@@ -11,7 +11,7 @@
   #define debug()
 #endif
 typedef struct {
-#ifdef __x86_64__
+// #ifdef __x86_64__
     void *rsp;
     void *rbp;
     void *rip;
@@ -20,16 +20,16 @@ typedef struct {
     void *r13;
     void *r14;
     void *r15;
-#elif __x86__
-    void *esp;
-    void *ebp;
-    void *eip;
-    void *ebx;
-    void *r12d;
-    void *r13d;
-    void *r14d;
-    void *r15d;
-#endif
+// #elif __x86__
+//     void *esp;
+//     void *ebp;
+//     void *eip;
+//     void *ebx;
+//     void *r12d;
+//     void *r13d;
+//     void *r14d;
+//     void *r15d;
+// #endif
 } ctx_t;
 
 enum co_status {
