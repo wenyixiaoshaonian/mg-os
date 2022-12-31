@@ -56,7 +56,7 @@ struct co {
  * %rdi: this, %rsi: cur_ctx, %rdx: new_ctx
  * save current context to parameter_1: cur_ctx, switch context to parameter_2: new_ctx
  */
-void _switch(ctx_t *ctx_t, ctx_t *ctx_t)
+void _switch(ctx_t *cur_ctx, ctx_t *new_ctx)
 {
     __asm__ __volatile__ (
     "       movq %rsp, 0(%rsi)          \n"    // save stack pointer
