@@ -118,7 +118,7 @@ void _exec() {
   cur = list;
   while(cur) {
     if(cur->co->status == CO_NEW) {
-      cur->co->func(cur->co->->arg);
+      cur->co->func(cur->co->arg);
     }
   }
   printf(">>>=== _exec error......\n");
