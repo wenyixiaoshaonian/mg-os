@@ -156,12 +156,14 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     list->co = cur;
     list->next = NULL;
     list = cur_list;
+    printf(">>>===111 \n");
   } else {
     struct co_list *clist = (struct co_list *)malloc(sizeof(struct co_list));
     clist->co = cur;
     cur_list->next = clist;
     cur_list = clist;
     cur_list->next = NULL;
+    printf(">>>===222 \n");
   }
   return cur;
 }
@@ -169,7 +171,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 void co_wait(struct co *co) {
   while(1) {
     if (co->status == CO_NEW) {
-      printf("main_ctx %p  co->context %p \n",main_ctx,co->context);
+      // printf("main_ctx %p  co->context %p \n",main_ctx,co->context);
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_RUNNING) {
