@@ -205,12 +205,16 @@ void co_yield() {
     }
     else if (flist->co->status == CO_WAITING) {
       printf(">>>=== co_yield  CO_WAITING......\n");
+      if(flist->co == cur_run)
+        break;
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
     }
     else if (flist->co->status == CO_RUNNING) {
       printf(">>>=== co_yield  CO_RUNNING......\n");
+      if(flist->co == cur_run)
+        break;
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
