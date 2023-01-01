@@ -8,7 +8,7 @@
 #ifdef LOCAL_MACHINE
   #define debug(...) printf(__VA_ARGS__)
 #else
-  #define debug((...))
+  #define debug(...)
 #endif
 typedef struct {
 #ifdef __x86_64__
