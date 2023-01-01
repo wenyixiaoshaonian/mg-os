@@ -202,7 +202,7 @@ void co_yield() {
       printf(">>>=== co_yield  CO_WAITING......\n");
       if(flist->co == cur_run) {
         flist = flist->next;
-        printf(">>>=== co_yield  continue......\n");
+        printf(">>>=== co_yield  continue 222......\n");
         continue;
       }
       ctx_t context = *(cur_run->context);
@@ -213,7 +213,7 @@ void co_yield() {
       printf(">>>=== co_yield  CO_RUNNING......\n");
       if(flist->co == cur_run) {
         flist = flist->next;
-        printf(">>>=== co_yield  continue......\n");
+        printf(">>>=== co_yield  continue 333......\n");
         continue;
       }
       ctx_t context = *(cur_run->context);
