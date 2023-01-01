@@ -117,7 +117,6 @@ void _exec() {
   struct co_list *cur = NULL;
   cur_run->func(cur_run->arg);
   cur_run->status = CO_DEAD;
-  printf(">>>=== CO_DEAD......\n");
   _switch(cur_run->context,main_ctx);
 }
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
@@ -147,7 +146,6 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   cur->context->eip = (void *)_exec;
 #endif
   //add co into list
-  // printf(">>>===aaaaa cur : %p\n",cur);
   if(!list) {
     list = (struct co_list *)malloc(sizeof(struct co_list));
     list->co = cur;
@@ -192,6 +190,7 @@ void co_wait(struct co *co) {
 void co_yield() {
   struct co_list *flist = list;
   while(flist) {
+    printf(">>>=== co_yield 1111......\n");
     if (flist->co->status == CO_NEW) {
       printf(">>>=== co_yield  CO_NEW......\n");
       ctx_t context = *(cur_run->context);
