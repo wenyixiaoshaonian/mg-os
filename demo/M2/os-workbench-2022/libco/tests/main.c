@@ -16,10 +16,8 @@ static int get_count() {
 
 static void work_loop(void *arg) {
     const char *s = (const char*)arg;
-    int i = 0;
-    printf(">>>===111 i = %d \n",i);
-    for (i; i < 100; ++i) {
-        printf("%s%d  i = %d   ", s, get_count(),i);
+    for (int i = 0; i < 100; ++i) {
+        printf("%s%d  ", s, get_count());
         add_count();
         co_yield();
     }

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define LOCAL_MACHINE
+// #define LOCAL_MACHINE
 #define STACK_SIZE 64*1024
 
 #ifdef LOCAL_MACHINE
@@ -194,23 +194,23 @@ void co_wait(struct co *co) {
   struct co_list *flist = list;
   while(1) {
     if (co->status == CO_NEW) {
-      // printf("main_ctx %p  co->context %p \n",main_ctx,co->context);
+      // debug("main_ctx %p  co->context %p \n",main_ctx,co->context);
       cur_run = co;
       co->status = CO_WAITING;
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_RUNNING) {
-      printf(">>>=== CO_RUNNING......\n");
+      debug(">>>=== CO_RUNNING......\n");
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_WAITING) {
-      printf(">>>=== CO_WAITING......\n");
+      debug(">>>=== CO_WAITING......\n");
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_DEAD) {
       free(co->stack);
       free(co);
-      printf(">>>=== bye......\n");
+      debug(">>>=== bye......\n");
       return;
     }
   }
@@ -219,19 +219,19 @@ void co_wait(struct co *co) {
 void co_yield() {
   struct co_list *flist = list;
   while(flist) {
-    printf(">>>=== co_yield 1111......\n");
+    debug(">>>=== co_yield 1111......\n");
     if (flist->co->status == CO_NEW) {
-      printf(">>>=== co_yield  CO_NEW......\n");
+      debug(">>>=== co_yield  CO_NEW......\n");
       ctx_t context = *(cur_run->context);
       flist->co->status = CO_RUNNING;
       cur_run = flist->co;
       _switch(&context,cur_run->context);
     }
     else if (flist->co->status == CO_WAITING) {
-      printf(">>>=== co_yield  CO_WAITING......\n");
+      debug(">>>=== co_yield  CO_WAITING......\n");
       if(flist->co == cur_run) {
         flist = flist->next;
-        printf(">>>=== co_yield  continue 222......\n");
+        debug(">>>=== co_yield  continue 222......\n");
         continue;
         // break;
       }
@@ -243,10 +243,10 @@ void co_yield() {
       return;
     }
     else if (flist->co->status == CO_RUNNING) {
-      printf(">>>=== co_yield  CO_RUNNING......\n");
+      debug(">>>=== co_yield  CO_RUNNING......\n");
       if(flist->co == cur_run) {
         flist = flist->next;
-        printf(">>>=== co_yield  continue 333......\n");
+        debug(">>>=== co_yield  continue 333......\n");
         continue;
         // break;
       }
@@ -261,6 +261,6 @@ void co_yield() {
       flist = flist->next;
     }
   }
-  printf(">>>=== co_yield continue......\n");
+  debug(">>>=== co_yield continue......\n");
   _switch(cur_run->context,main_ctx);
 }
