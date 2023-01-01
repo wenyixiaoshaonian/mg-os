@@ -63,7 +63,6 @@ struct co_list *cur_list = NULL;
 
 ctx_t * _save(ctx_t *cur_ctx)
 {
-#ifdef __x86_64__
     __asm__ __volatile__ (
     "       movq %rsp, 0(%rdi)          \n"    // save stack pointer
     "       movq %rbp, 8(%rdi)          \n"    // save frame pointer
