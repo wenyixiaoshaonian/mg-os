@@ -60,6 +60,22 @@ ctx_t *main_ctx = NULL;
 struct co *cur_run = NULL;
 struct co_list *list = NULL;
 struct co_list *cur_list = NULL;
+
+ctx_t * _save(ctx_t *cur_ctx)
+{
+#ifdef __x86_64__
+    __asm__ __volatile__ (
+    "       movq %rsp, 0(%rdi)          \n"    // save stack pointer
+    "       movq %rbp, 8(%rdi)          \n"    // save frame pointer
+    "       movq (%rsp), %rax           \n"
+    "       movq %rax, 16(%rdi)         \n"    // save pc pointer
+    "       movq %rbx, 24(%rdi)         \n"    // save rbx, r12 - r15
+    "       movq %r12, 32(%rdi)         \n"
+    "       movq %r13, 40(%rdi)         \n"
+    "       movq %r14, 48(%rdi)         \n"
+    "       movq %r15, 56(%rdi)         \n"
+    );
+}
 /*
  * %rdi: this, %rsi: cur_ctx, %rdx: new_ctx
  * save current context to parameter_1: cur_ctx, switch context to parameter_2: new_ctx
@@ -201,27 +217,29 @@ void co_yield() {
     else if (flist->co->status == CO_WAITING) {
       printf(">>>=== co_yield  CO_WAITING......\n");
       if(flist->co == cur_run) {
-        // flist = flist->next;
-        // printf(">>>=== co_yield  continue 222......\n");
-        // continue;
-        break;
+        flist = flist->next;
+        printf(">>>=== co_yield  continue 222......\n");
+        continue;
+        // break;
       }
-      ctx_t context = *(cur_run->context);
+      ctx_t *prv_ctx =  _save(cur_run->context);
+      cur_run->context = prv_ctx;
       cur_run = flist->co;
-      _switch(&context,cur_run->context);
+      _switch(&prv_ctx,cur_run->context);
       return;
     }
     else if (flist->co->status == CO_RUNNING) {
       printf(">>>=== co_yield  CO_RUNNING......\n");
       if(flist->co == cur_run) {
-        // flist = flist->next;
-        // printf(">>>=== co_yield  continue 333......\n");
-        // continue;
-        break;
+        flist = flist->next;
+        printf(">>>=== co_yield  continue 333......\n");
+        continue;
+        // break;
       }
-      ctx_t context = *(cur_run->context);
+      ctx_t *prv_ctx =  _save(cur_run->context);
+      cur_run->context = prv_ctx;
       cur_run = flist->co;
-      _switch(&context,cur_run->context);
+      _switch(&prv_ctx,cur_run->context);
       return;
     }
     else {
