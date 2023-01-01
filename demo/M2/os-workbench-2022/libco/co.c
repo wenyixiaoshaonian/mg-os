@@ -225,7 +225,7 @@ void co_yield() {
       ctx_t *prv_ctx =  _save(cur_run->context);
       cur_run->context = prv_ctx;
       cur_run = flist->co;
-      _switch(&prv_ctx,cur_run->context);
+      _switch(prv_ctx,cur_run->context);
       return;
     }
     else if (flist->co->status == CO_RUNNING) {
@@ -239,7 +239,7 @@ void co_yield() {
       ctx_t *prv_ctx =  _save(cur_run->context);
       cur_run->context = prv_ctx;
       cur_run = flist->co;
-      _switch(&prv_ctx,cur_run->context);
+      _switch(prv_ctx,cur_run->context);
       return;
     }
     else {
