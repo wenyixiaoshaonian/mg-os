@@ -61,7 +61,7 @@ struct co *cur_run = NULL;
 struct co_list *list = NULL;
 struct co_list *cur_list = NULL;
 
-ctx_t * _save(ctx_t *cur_ctx)
+void _save(ctx_t *cur_ctx)
 {
     __asm__ __volatile__ (
     "       movq %rsp, 0(%rdi)          \n"    // save stack pointer
@@ -221,8 +221,9 @@ void co_yield() {
         continue;
         // break;
       }
-      ctx_t *prv_ctx =  _save(cur_run->context);
-      cur_run->context = prv_ctx;
+      ctx_t *prv_ctx = NULL;
+      _save(cur_run->context);
+      prv_ctx = cur_run->context;
       cur_run = flist->co;
       _switch(prv_ctx,cur_run->context);
       return;
@@ -235,8 +236,9 @@ void co_yield() {
         continue;
         // break;
       }
-      ctx_t *prv_ctx =  _save(cur_run->context);
-      cur_run->context = prv_ctx;
+      ctx_t *prv_ctx = NULL;
+      _save(cur_run->context);
+      prv_ctx = cur_run->context;
       cur_run = flist->co;
       _switch(prv_ctx,cur_run->context);
       return;
