@@ -208,6 +208,7 @@ void co_yield() {
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
+      return;
     }
     else if (flist->co->status == CO_RUNNING) {
       printf(">>>=== co_yield  CO_RUNNING......\n");
@@ -219,6 +220,7 @@ void co_yield() {
       ctx_t context = *(cur_run->context);
       cur_run = flist->co;
       _switch(&context,cur_run->context);
+      return;
     }
     else {
       flist = flist->next;
