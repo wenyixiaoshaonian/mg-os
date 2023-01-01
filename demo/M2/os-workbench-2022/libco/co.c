@@ -63,6 +63,7 @@ struct co_list *cur_list = NULL;
 
 void _save(ctx_t *cur_ctx)
 {
+#ifdef __x86_64__
     __asm__ __volatile__ (
     "       movq %rsp, 0(%rdi)          \n"    // save stack pointer
     "       movq %rbp, 8(%rdi)          \n"    // save frame pointer
@@ -74,6 +75,19 @@ void _save(ctx_t *cur_ctx)
     "       movq %r14, 48(%rdi)         \n"
     "       movq %r15, 56(%rdi)         \n"
     );
+  #elif __i386__
+    __asm__ __volatile__ (
+    // "       movl %esp, 0(%esi)          \n"    // save stack pointer
+    // "       movl %ebp, 4(%esi)          \n"    // save frame pointer
+    // "       movl (%esp), %eax           \n"
+    // "       movl %eax, 8(%esi)         \n"    // save pc pointer
+    // "       movl %ebx, 12(%esi)         \n"    // save rbx, r12 - r15
+    // "       movl %r12d, 16(%esi)         \n"
+    // "       movl %r13d, 20(%esi)         \n"
+    // "       movl %r14d, 24(%esi)         \n"
+    // "       movl %r15d, 28(%esi)         \n"
+    );
+  #endif
 }
 /*
  * %rdi: this, %rsi: cur_ctx, %rdx: new_ctx
