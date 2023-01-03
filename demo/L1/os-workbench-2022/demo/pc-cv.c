@@ -8,7 +8,7 @@ cond_t cv = COND_INIT();
 void Tproduce() {
   while (1) {
     mutex_lock(&lk);
-    if (count == n) {
+    while (count == n) {
       cond_wait(&cv, &lk);
     }
     printf("("); count++;
@@ -20,7 +20,7 @@ void Tproduce() {
 void Tconsume() {
   while (1) {
     mutex_lock(&lk);
-    if (count == 0) {
+    while (count == 0) {
       pthread_cond_wait(&cv, &lk);
     }
     printf(")"); count--;
