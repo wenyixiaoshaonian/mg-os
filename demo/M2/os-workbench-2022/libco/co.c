@@ -48,7 +48,7 @@ struct co {
   struct co *    waiter;  // 是否有其他协程在等待当前协程
   ctx_t        *context; // 寄存器现场
   void *stack;
-  // uint8_t        stack[STACK_SIZE]; // 协程的堆栈
+  int num;                //编号
 };
 
 struct co_list {
@@ -60,6 +60,21 @@ ctx_t *main_ctx = NULL;
 struct co *cur_run = NULL;
 struct co_list *list = NULL;
 struct co_list *cur_list = NULL;
+int info_num = 0;
+
+struct co * getRandom(struct co_list *list) {
+  int i=1;
+  struct co *ret=NULL;
+  for(struct co_list * Node=list;Node;Node=Node->next){
+    if(Node->co->status == CO_DEAD)
+      continue;
+    if(rand()%i==0){
+      ret=Node->co;
+    }
+    i++;
+  }
+  return ret;
+}
 
 void _save(ctx_t *cur_ctx)
 {
@@ -146,6 +161,7 @@ void _exec() {
   struct co_list *cur = NULL;
   cur_run->func(cur_run->arg);
   cur_run->status = CO_DEAD;
+  debug(">>>=== CO_DEAD...... cur_run = %p\n",cur_run);
   _switch(cur_run->context,main_ctx);
 }
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
@@ -193,24 +209,27 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 void co_wait(struct co *co) {
   struct co_list *flist = list;
   while(1) {
+    debug(">>>=== co_wait......co = %p\n",co);
     if (co->status == CO_NEW) {
-      // debug("main_ctx %p  co->context %p \n",main_ctx,co->context);
+      // debug(">>>=== CO_NEW......cur_run = %p\n",co);
       cur_run = co;
       co->status = CO_WAITING;
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_RUNNING) {
-      debug(">>>=== CO_RUNNING......\n");
+      debug(">>>=== co_wait CO_RUNNING......\n");
+      cur_run = co;
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_WAITING) {
-      debug(">>>=== CO_WAITING......\n");
+      debug(">>>=== co_wait CO_WAITING......co = %p\n",co);
+      cur_run = co;
       _switch(main_ctx,co->context);
     }
     else if (co->status == CO_DEAD) {
       free(co->stack);
       free(co);
-      debug(">>>=== bye......\n");
+      debug(">>>=== co_wait bye......\n");
       return;
     }
   }
@@ -218,6 +237,7 @@ void co_wait(struct co *co) {
 
 void co_yield() {
   struct co_list *flist = list;
+#if 0
   while(flist) {
     debug(">>>=== co_yield 1111......\n");
     if (flist->co->status == CO_NEW) {
@@ -263,4 +283,17 @@ void co_yield() {
   }
   debug(">>>=== co_yield continue......\n");
   _switch(cur_run->context,main_ctx);
+#else
+  struct co *prv = NULL;
+  _save(cur_run->context);
+  prv = cur_run;
+  cur_run = getRandom(flist);
+  debug(">>>=== co_yield......cur_run = %p\n",cur_run);
+  if(prv == cur_run)
+    return;
+  if(cur_run == NULL)
+    _switch(prv->context,main_ctx);
+  _switch(prv->context,cur_run->context);
+  return;
+#endif
 }
