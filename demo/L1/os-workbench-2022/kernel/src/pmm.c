@@ -1,6 +1,6 @@
 #include <common.h>
 
-spinlock_t *lock = 1;
+spinlock_t *lock = 0;
 
 void spin_lock(spinlock_t *lk) {
   while (1) {
