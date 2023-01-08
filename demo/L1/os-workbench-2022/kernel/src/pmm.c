@@ -3,6 +3,7 @@
 spinlock_t *lock;
 int len = 0;
 int used_len = 0;
+int start,end;
 
 void spin_lock(spinlock_t *lk) {
   while (1) {
@@ -19,6 +20,7 @@ void spin_unlock(spinlock_t *lk) {
 void *kalloc(size_t size) {
   if(len <= 0)
     return NULL;
+  
   return NULL;
 }
 
@@ -33,6 +35,8 @@ static void pmm_init() {
   *lock = 0;    // unlock
   len = heap.end - heap.start;
   used_len = 0;
+  start = *(size_t *)heap.start;
+  end = *(size_t *)heap.end;
 }
 
 MODULE_DEF(pmm) = {
