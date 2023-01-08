@@ -14,7 +14,7 @@ spinlock_t *lock;
 size_t len = 0;
 size_t used_len = 0;
 size_t start,end;
-
+used_list head = NULL;
 
 void spin_lock(spinlock_t *lk) {
   while (1) {
