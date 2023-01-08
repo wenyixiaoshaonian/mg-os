@@ -1,9 +1,9 @@
 #include <common.h>
 
 spinlock_t *lock;
-int len = 0;
-int used_len = 0;
-int start,end;
+size_t len = 0;
+size_t used_len = 0;
+size_t start,end;
 
 void spin_lock(spinlock_t *lk) {
   while (1) {
