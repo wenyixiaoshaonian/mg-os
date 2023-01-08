@@ -23,9 +23,9 @@ static void kfree(void *ptr) {
 static void pmm_init() {
   uintptr_t pmsize = ((uintptr_t)heap.end - (uintptr_t)heap.start);
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
-  spin_lock(lock);				//获取锁
-  printf(">>>===111 into spin...\n");
-  spin_lock(lock);  			//释放锁
+  // spin_lock(lock);				//获取锁
+  // printf(">>>===111 into spin...\n");
+  // spin_lock(lock);  			//释放锁
 }
 
 MODULE_DEF(pmm) = {
