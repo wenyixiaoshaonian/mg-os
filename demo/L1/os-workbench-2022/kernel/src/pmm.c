@@ -30,6 +30,7 @@ static void pmm_init() {
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
   *lock = 0;    // unlock
   len = heap.end - heap.start;
+  printf(" len = %d...\n",len);
 }
 
 MODULE_DEF(pmm) = {
