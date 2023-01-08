@@ -35,8 +35,8 @@ static void pmm_init() {
   *lock = 0;    // unlock
   len = heap.end - heap.start;
   used_len = 0;
-  start = *(size_t *)heap.start;
-  end = *(size_t *)heap.end;
+  start = (int)heap.start;
+  end = (int)heap.end;
   printf("start %d end %d \n", pmsize >> 20, start, end);
 }
 
