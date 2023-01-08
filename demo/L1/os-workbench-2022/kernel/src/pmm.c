@@ -1,9 +1,19 @@
 #include <common.h>
 
+struct used_heap {
+  size_t left;
+  size_t right;
+};
+struct used_list {
+  struct used_heap data;
+  struct used_heap next;
+};
+
 spinlock_t *lock;
 size_t len = 0;
 size_t used_len = 0;
 size_t start,end;
+
 
 void spin_lock(spinlock_t *lk) {
   while (1) {
