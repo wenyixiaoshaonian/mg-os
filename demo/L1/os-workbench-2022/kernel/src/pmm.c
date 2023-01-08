@@ -4,8 +4,9 @@ spinlock_t *lock = 0;
 
 void spin_lock(spinlock_t *lk) {
   while (1) {
+    printf("111 lk : %d\n", lk);
     intptr_t value = atomic_xchg(lk, 1);
-    printf("value : %d\n", value);
+    printf("222 lk : %d\n", lk);
     if (value == 0) {
       printf("break.....\n");
       break;
