@@ -1,13 +1,14 @@
 #include <common.h>
 
-struct used_heap {
+typedef struct {
   size_t left;
   size_t right;
-};
-struct used_list {
-  struct used_heap data;
-  struct used_heap next;
-};
+}used_heap;
+
+typedef struct {
+  used_heap data;
+  used_heap next;
+}used_list;
 
 spinlock_t *lock;
 size_t len = 0;
