@@ -6,18 +6,15 @@ static void os_init() {
 }
 
 static void os_run() {
-  size_t a[3];
+  void *test;
   for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
   spin_lock(lock);				//获取锁
   printf(">>>===111 into spin...\n");
-  // kalloc(1024);
-  // kfree();
+  test = kalloc(1024);
+  kfree(test);
   spin_unlock(lock);  			//释放锁
-  for(int i = 0;i<3;i++) {
-    printf(">>>===333 a : %p...\n",&a[i]);
-  }
   while (1) ;
 }
 
