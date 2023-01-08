@@ -11,8 +11,8 @@ static void os_run() {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
   spin_lock(lock);				//获取锁
-  printf(">>>===111 into spin...\n");
   test = kalloc(1024);
+  printf(">>>===111 test = %p...\n",test);
   kfree(test);
   spin_unlock(lock);  			//释放锁
   while (1) ;
