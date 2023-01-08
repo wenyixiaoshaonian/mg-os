@@ -37,6 +37,7 @@ static void pmm_init() {
   used_len = 0;
   start = *(size_t *)heap.start;
   end = *(size_t *)heap.end;
+  printf("start %d end %d \n", pmsize >> 20, start, end);
 }
 
 MODULE_DEF(pmm) = {
