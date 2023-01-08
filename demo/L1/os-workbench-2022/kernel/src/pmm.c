@@ -17,12 +17,14 @@ void spin_unlock(spinlock_t *lk) {
 }
 
 void *kalloc(size_t size) {
-
+  if(len <= 0)
+    return NULL;
   return NULL;
 }
 
 void kfree(void *ptr) {
-
+  if(!ptr)
+    return;
 }
 
 static void pmm_init() {
@@ -30,7 +32,7 @@ static void pmm_init() {
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
   *lock = 0;    // unlock
   len = heap.end - heap.start;
-  printf(" len = %d...\n",len);
+  used_len = 0;
 }
 
 MODULE_DEF(pmm) = {
