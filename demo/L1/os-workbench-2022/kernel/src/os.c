@@ -1,6 +1,6 @@
 #include <common.h>
 
-extern spinlock_t *lock;
+extern spinlock_t *slock;
 static void os_init() {
   pmm->init();
 }
@@ -10,11 +10,11 @@ static void os_run() {
   for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
-  spin_lock(lock);				//获取锁
+  spin_lock(slock);				//获取锁
   test = kalloc(1024);
   printf(">>>===111 test = %p...\n",test);
   kfree(test);
-  spin_unlock(lock);  			//释放锁
+  spin_unlock(slock);  			//释放锁
   while (1) ;
 }
 

@@ -10,11 +10,11 @@ typedef struct {
   used_heap next;
 }used_list;
 
-spinlock_t *lock;
+spinlock_t *slock;
 size_t len = 0;
 size_t used_len = 0;
 size_t start,end;
-used_list head = NULL;
+// used_list head = NULL;
 
 void spin_lock(spinlock_t *lk) {
   while (1) {
@@ -43,7 +43,7 @@ void kfree(void *ptr) {
 static void pmm_init() {
   uintptr_t pmsize = ((uintptr_t)heap.end - (uintptr_t)heap.start);
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
-  *lock = 0;    // unlock
+  *slock = 0;    // unlock
   len = heap.end - heap.start;
   used_len = 0;
   start = (int)heap.start;
