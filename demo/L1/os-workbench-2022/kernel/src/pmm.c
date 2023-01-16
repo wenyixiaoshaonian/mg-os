@@ -14,11 +14,16 @@ spinlock_t *slock;
 size_t len = 0;
 size_t used_len = 0;
 
-typedef struct {  //20 bite
+typedef struct x_block h_block;
+
+struct x_block {  //20 bite
   size_t size;    //8 bite
   int status;     //4 bite
   void *adr;      //8 bite
-} h_block;
+  h_block *next;
+};
+
+h_block *head = NULL;
 
 h_block* find_block() {
   //todo
@@ -66,6 +71,7 @@ static void pmm_init() {
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
 
   spin_init(slock);
+  head = heap.start; 
   len = heap.end - heap.start;
 }
 
