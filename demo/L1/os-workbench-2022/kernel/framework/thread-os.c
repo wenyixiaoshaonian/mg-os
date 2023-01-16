@@ -57,7 +57,7 @@ void mp_entry() {
   yield();
 }
 
-int main() {
+int mains() {
   cte_init(on_interrupt);
 
   for (int i = 0; i < LENGTH(tasks); i++) {

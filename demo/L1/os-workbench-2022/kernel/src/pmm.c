@@ -14,8 +14,28 @@ spinlock_t *slock;
 size_t len = 0;
 size_t used_len = 0;
 size_t start,end;
-// used_list head = NULL;
 
+typedef struct {  //20 bite
+  size_t size;    //8 bite
+  int status;     //4 bite
+  void *adr;      //8 bite
+} h_block;
+
+h_block* find_block() {
+  //todo
+}
+
+h_block* create_block() {
+  //todo
+}
+
+h_block* break_block() {
+  //todo
+}
+
+void spin_init(spinlock_t *lk) {
+  *lk = 0;
+}
 void spin_lock(spinlock_t *lk) {
   while (1) {
     intptr_t value = atomic_xchg(lk, 1);
@@ -29,8 +49,7 @@ void spin_unlock(spinlock_t *lk) {
 }
 
 void *kalloc(size_t size) {
-  if(len <= 0)
-    return NULL;
+  //todo
   
   return NULL;
 }
@@ -43,11 +62,11 @@ void kfree(void *ptr) {
 static void pmm_init() {
   uintptr_t pmsize = ((uintptr_t)heap.end - (uintptr_t)heap.start);
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
-  *slock = 0;    // unlock
+
+  spin_init(slock);
   len = heap.end - heap.start;
-  used_len = 0;
-  start = (int)heap.start;
-  end = (int)heap.end;
+  // start = (int)heap.start;
+  // end = (int)heap.end;
   printf("start %d end %d \n",start, end);
 }
 
