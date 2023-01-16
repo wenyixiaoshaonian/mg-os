@@ -13,7 +13,6 @@ typedef struct {
 spinlock_t *slock;
 size_t len = 0;
 size_t used_len = 0;
-size_t start,end;
 
 typedef struct {  //20 bite
   size_t size;    //8 bite
@@ -23,14 +22,17 @@ typedef struct {  //20 bite
 
 h_block* find_block() {
   //todo
+  return NULL;
 }
 
 h_block* create_block() {
   //todo
+  return NULL;
 }
 
 h_block* break_block() {
   //todo
+  return NULL;
 }
 
 void spin_init(spinlock_t *lk) {
@@ -65,9 +67,6 @@ static void pmm_init() {
 
   spin_init(slock);
   len = heap.end - heap.start;
-  // start = (int)heap.start;
-  // end = (int)heap.end;
-  printf("start %d end %d \n",start, end);
 }
 
 MODULE_DEF(pmm) = {
