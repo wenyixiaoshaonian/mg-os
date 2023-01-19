@@ -1,6 +1,8 @@
 #include <common.h>
 
-#define MAXBLOCK 16*1024*1024
+#define MAXBLOCK 16384   //16*1024
+
+extern spinlock_t *slock;
 enum ops { OP_ALLOC = 0, OP_FREE };
 struct malloc_op {
   enum ops type;
@@ -19,13 +21,14 @@ void random_op(struct malloc_op* op) {
 int alloc_check(void *adr,size_t sz) {
   if(!adr)
     return false;
-  size_t size = adr - 32;
+  size_t size = adr - 40;
   return (adr > heap.start && adr < heap.end && size == sz) ? true:false;
 }
 
 static void stress_test() {
   struct malloc_op op;
   op.type = OP_ALLOC;
+  
   while (1) {
     random_op(&op);
     switch (op.type) {
@@ -35,9 +38,7 @@ static void stress_test() {
           printf("malloc adr is illegality!!!!!!\n");
           return;
         }
-        else {
-          printf("malloc adr successful  adr = %p  size = %d\n",op.addr,op.sz);
-        }
+      // printf("%d malloc adr successful  adr = %p  size = %d\n",cpu_current(),op.addr,op.sz);
       // break;
       // case OP_FREE:
         kfree(op.addr); 
@@ -55,9 +56,9 @@ static void os_init() {
 static void os_run() {
   void *test = NULL;
   void *test2 = NULL;
-  for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
-    putch(*s == '*' ? '0' + cpu_current() : *s);
-  }
+  // for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
+  //   putch(*s == '*' ? '0' + cpu_current() : *s);
+  // }
   stress_test();
   while (1) {
     ;

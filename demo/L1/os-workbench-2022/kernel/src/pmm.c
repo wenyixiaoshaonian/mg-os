@@ -6,7 +6,7 @@ size_t used_len = 0;
 
 typedef struct x_block h_block;
 
-struct x_block {  // 32 bite
+struct x_block {  // 40 bite
   size_t size;    // 8 bite
   int status;     // 4 bite
   void *adr;      // 8 bite
@@ -16,8 +16,7 @@ struct x_block {  // 32 bite
 
 h_block *head = NULL;
 h_block *pre = NULL;
-
-#define HEADSIZE 32
+#define HEADSIZE sizeof(h_block)
 #define USE 1
 #define FREE 0
 
@@ -39,10 +38,8 @@ void spin_unlock(spinlock_t *lk) {
 h_block* find_block(size_t size) {
   h_block* heap_block = NULL;
   if(!pre) {
-    // printf("can not find the memory !!!\n");
     return NULL;
   }
-    
   heap_block = head;
   spin_lock(slock);
   while(heap_block) {
@@ -53,7 +50,7 @@ h_block* find_block(size_t size) {
       return heap_block;
     }
     // printf("memory at %p...status = %d\n",heap_block,heap_block->status);
-    heap_block = heap_block->next; 
+    heap_block = heap_block->next;
   }
   spin_unlock(slock);
   // printf("can not find the memory !!!\n");
@@ -67,7 +64,7 @@ h_block* create_block(size_t size) {
   if(used_len + HEADSIZE + size < len) {
     heap_block = heap.start + used_len;
     used_len += HEADSIZE + size;
-    printf(">>>=== free size = %d \n",len - used_len);
+    printf(">>>=== %d  free size = %d \n",cpu_current(),len - used_len);
   }
   else {
     printf("there is not enough memory...\n");
@@ -82,6 +79,7 @@ h_block* create_block(size_t size) {
   if(pre)
     pre->next = heap_block;
   pre = heap_block;
+  // printf(">>== %d   %p  block->use_flag %d\n",cpu_current(),heap_block->adr,heap_block->use_flag);
   spin_unlock(slock);
   return heap_block;
 }
@@ -89,6 +87,7 @@ h_block* create_block(size_t size) {
 bool free_block(h_block* block) {
   spin_lock(slock);
   if(block->status == FREE || block->use_flag != 0x55aa) {
+    printf(">>== %d  kfree failed.....%p  block->status = %d  block->use_flag %d\n",cpu_current(),block->adr,block->status,block->use_flag);
     spin_unlock(slock);
     return false;
   }
@@ -104,25 +103,31 @@ h_block* break_block() {
 
 void *kalloc(size_t size) {
   h_block* heap_block = find_block(size);
-  if (heap_block)
+  if (heap_block) {
     return heap_block->adr;
+  }
   else {
     heap_block = create_block(size);
-    if (heap_block)
+    if (heap_block) {
       return heap_block->adr;
+    }
   }
   printf("kalloc failed.....\n");
   return NULL;
 }
 
 void kfree(void *ptr) {
-  if(!ptr)
+  
+  if(!ptr) {
     return;
+  }
   h_block* block = NULL;
   block = (h_block*)(ptr - HEADSIZE);   //根据adr找到block头部
-  if(!free_block(block))
-    printf("kfree failed.....");
-  // printf("kfree successful : %p.....\n",ptr);
+  if(!free_block(block)) {
+    return;
+  }
+    // printf("kfree failed.....%p \n",ptr);
+  
   return;
 }
 
@@ -134,13 +139,8 @@ static void pmm_init() {
   len = heap.end - heap.start;
 }
 
-static void kcheck() {
-
-}
-
 MODULE_DEF(pmm) = {
   .init  = pmm_init,
   .alloc = kalloc,
   .free  = kfree,
-  .check  = kcheck,
 };
