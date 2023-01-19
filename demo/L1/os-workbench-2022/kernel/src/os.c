@@ -1,5 +1,52 @@
 #include <common.h>
 
+#define MAXBLOCK 16*1024*1024
+enum ops { OP_ALLOC = 0, OP_FREE };
+struct malloc_op {
+  enum ops type;
+  size_t sz; 
+  void *addr; 
+   ;
+};
+
+void random_op(struct malloc_op* op) {
+  // op->type = rand() % 2;
+  op->sz = rand() % MAXBLOCK;
+  op->addr = NULL;
+  return ;
+}
+
+int alloc_check(void *adr,size_t sz) {
+  if(!adr)
+    return false;
+  size_t size = adr - 32;
+  return (adr > heap.start && adr < heap.end && size == sz) ? true:false;
+}
+
+static void stress_test() {
+  struct malloc_op op;
+  op.type = OP_ALLOC;
+  while (1) {
+    random_op(&op);
+    switch (op.type) {
+      case OP_ALLOC: 
+        op.addr = pmm->alloc(op.sz);
+        if(!op.addr && !alloc_check(op.addr, op.sz)) {
+          printf("malloc adr is illegality!!!!!!\n");
+          return;
+        }
+        else {
+          printf("malloc adr successful  adr = %p  size = %d\n",op.addr,op.sz);
+        }
+      // break;
+      // case OP_FREE:
+        kfree(op.addr); 
+
+      break;
+    }
+  }
+}
+
 // extern spinlock_t *slock;
 static void os_init() {
   pmm->init();
@@ -11,23 +58,10 @@ static void os_run() {
   for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
-  // spin_lock(slock);				//获取锁
-  test = kalloc(1024);
-  printf(">>>===111 adr = %p...\n\n",test);
-
-  test2 = kalloc(1024);
-  printf(">>>===111 adr = %p...\n\n",test2);
-
-  kfree(test);
-  
-
-  test = kalloc(1024);
-  printf(">>>===111 adr = %p...\n\n",test);
-
-  kfree(test);
-  kfree(test2);
-  // spin_unlock(slock);  			//释放锁
-  while (1) ;
+  stress_test();
+  while (1) {
+    ;
+  }
 }
 
 MODULE_DEF(os) = {

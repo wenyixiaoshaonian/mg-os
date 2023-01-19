@@ -11,7 +11,7 @@ struct x_block {  // 32 bite
   int status;     // 4 bite
   void *adr;      // 8 bite
   h_block *next;  // 8 bit
-  int reserve;    // 4 bit
+  int use_flag;    // 4 bit
 };
 
 h_block *head = NULL;
@@ -39,7 +39,7 @@ void spin_unlock(spinlock_t *lk) {
 h_block* find_block(size_t size) {
   h_block* heap_block = NULL;
   if(!pre) {
-    printf("can not find the memory !!!\n");
+    // printf("can not find the memory !!!\n");
     return NULL;
   }
     
@@ -47,15 +47,16 @@ h_block* find_block(size_t size) {
   spin_lock(slock);
   while(heap_block) {
     if(heap_block->size == size && heap_block->status == FREE) {
-      printf("find the memory at %p...\n",heap_block);
+      // printf("find the memory at %p...\n",heap_block);
       heap_block->status = USE;
+      spin_unlock(slock);
       return heap_block;
     }
     // printf("memory at %p...status = %d\n",heap_block,heap_block->status);
     heap_block = heap_block->next; 
   }
   spin_unlock(slock);
-  printf("can not find the memory !!!\n");
+  // printf("can not find the memory !!!\n");
   return NULL;
 }
 
@@ -66,15 +67,18 @@ h_block* create_block(size_t size) {
   if(used_len + HEADSIZE + size < len) {
     heap_block = heap.start + used_len;
     used_len += HEADSIZE + size;
+    printf(">>>=== free size = %d \n",len - used_len);
   }
   else {
     printf("there is not enough memory...\n");
+    spin_unlock(slock);
     return NULL;
   }
   heap_block->size = size;
   heap_block->status = USE;
   heap_block->adr = (int)heap_block + HEADSIZE;
   heap_block->next = NULL;
+  heap_block->use_flag = 0x55aa;   // this block is used
   if(pre)
     pre->next = heap_block;
   pre = heap_block;
@@ -82,12 +86,15 @@ h_block* create_block(size_t size) {
   return heap_block;
 }
 
-void free_block(h_block* block) {
+bool free_block(h_block* block) {
   spin_lock(slock);
+  if(block->status == FREE || block->use_flag != 0x55aa) {
+    spin_unlock(slock);
+    return false;
+  }
   block->status = FREE;
-  // printf("free_block at %p...status = %d\n",block,block->status);
   spin_unlock(slock);
-  return;
+  return true;
 }
 
 h_block* break_block() {
@@ -104,17 +111,18 @@ void *kalloc(size_t size) {
     if (heap_block)
       return heap_block->adr;
   }
+  printf("kalloc failed.....\n");
   return NULL;
 }
 
 void kfree(void *ptr) {
-  h_block* block = NULL;
-  block = (h_block*)(ptr - 0x20);   //根据adr找到block头部
-  if(!block)
+  if(!ptr)
     return;
-  else {
-    free_block(block);
-  }
+  h_block* block = NULL;
+  block = (h_block*)(ptr - HEADSIZE);   //根据adr找到block头部
+  if(!free_block(block))
+    printf("kfree failed.....");
+  // printf("kfree successful : %p.....\n",ptr);
   return;
 }
 
@@ -126,8 +134,13 @@ static void pmm_init() {
   len = heap.end - heap.start;
 }
 
+static void kcheck() {
+
+}
+
 MODULE_DEF(pmm) = {
   .init  = pmm_init,
   .alloc = kalloc,
   .free  = kfree,
+  .check  = kcheck,
 };

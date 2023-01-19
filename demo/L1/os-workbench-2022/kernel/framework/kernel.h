@@ -19,4 +19,5 @@ MODULE(pmm) {
   void  (*init)();
   void *(*alloc)(size_t size);
   void  (*free)(void *ptr);
+  void  (*check)();
 };
