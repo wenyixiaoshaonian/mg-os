@@ -87,7 +87,7 @@ h_block* create_block(size_t size) {
 bool free_block(h_block* block) {
   spin_lock(slock);
   if(block->status == FREE || block->use_flag != 0x55aa) {
-    printf(">>== %d  kfree failed.....%p  block->status = %d  block->use_flag %d\n",cpu_current(),block->adr,block->status,block->use_flag);
+    // printf(">>== %d  kfree failed.....%p  block->status = %d  block->use_flag %d\n",cpu_current(),block->adr,block->status,block->use_flag);
     spin_unlock(slock);
     return false;
   }

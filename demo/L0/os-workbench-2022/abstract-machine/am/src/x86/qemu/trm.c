@@ -1,7 +1,7 @@
 #include "x86-qemu.h"
 
 Area heap = {};
-int __am_ncpu = 4;
+int __am_ncpu = 3;
 
 int main(const char *args);
 

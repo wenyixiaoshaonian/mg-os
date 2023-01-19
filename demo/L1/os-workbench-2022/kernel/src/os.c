@@ -56,9 +56,9 @@ static void os_init() {
 static void os_run() {
   void *test = NULL;
   void *test2 = NULL;
-  // for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
-  //   putch(*s == '*' ? '0' + cpu_current() : *s);
-  // }
+  for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
+    putch(*s == '*' ? '0' + cpu_current() : *s);
+  }
   stress_test();
   while (1) {
     ;
