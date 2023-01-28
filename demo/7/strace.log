@@ -1,0 +1,24 @@
+31605 execve("./sh", ["./sh"], 0x7ffddace3be8 /* 26 vars */) = 0
+31605 write(2, "> ", 2)                 = 2
+31605 read(0, ".", 1)                   = 1
+31605 read(0, "/", 1)                   = 1
+31605 read(0, "m", 1)                   = 1
+31605 read(0, "i", 1)                   = 1
+31605 read(0, "n", 1)                   = 1
+31605 read(0, "i", 1)                   = 1
+31605 read(0, "m", 1)                   = 1
+31605 read(0, "a", 1)                   = 1
+31605 read(0, "l", 1)                   = 1
+31605 read(0, "\n", 1)                  = 1
+31605 fork()                            = 31656
+31605 wait4(-1,  <unfinished ...>
+31656 execve("./minimal", ["./minimal"], NULL) = 0
+31656 write(1, "\33[01;31mHello, OS World\33[0m\n", 28) = 28
+31656 exit(1)                           = ?
+31656 +++ exited with 1 +++
+31605 <... wait4 resumed>NULL, 0, NULL) = 31656
+31605 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=31656, si_uid=1000, si_status=1, si_utime=0, si_stime=0} ---
+31605 write(2, "> ", 2)                 = 2
+31605 read(0, 0x406020, 1)              = ? ERESTARTSYS (To be restarted if SA_RESTART is set)
+31605 --- SIGINT {si_signo=SIGINT, si_code=SI_KERNEL} ---
+31605 +++ killed by SIGINT +++
