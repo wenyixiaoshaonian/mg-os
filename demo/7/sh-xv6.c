@@ -113,8 +113,8 @@ void runcmd(struct cmd* cmd) {
     case EXEC:
       ecmd = (struct execcmd*)cmd;
       if (ecmd->argv[0] == 0) syscall(SYS_exit, 1);
-      syscall(SYS_execve, ecmd->argv[0], ecmd->argv, NULL);
-      print("fail to exec ", ecmd->argv[0], "\n", NULL);
+      if (syscall(SYS_execve, ecmd->argv[0], ecmd->argv, NULL) < 0);
+        print("fail to exec ", ecmd->argv[0], "\n", NULL);
       break;
 
     case REDIR:
