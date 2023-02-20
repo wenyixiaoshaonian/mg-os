@@ -44,8 +44,11 @@ Task tasks[] = {
 
 Context *on_interrupt(Event ev, Context *ctx) {
   extern Task tasks[];
-  if (!current) current = &tasks[0];
-  else          current->context = ctx;
+  if (!current) {
+    printf(">>>===111\n");
+    current = &tasks[0];
+  }
+  else          current->context = ctx;   //更新线程的运行状态
   do {
     current = current->next;
   } while ((current - tasks) % cpu_count() != cpu_current());
@@ -57,7 +60,7 @@ void mp_entry() {
   yield();
 }
 
-int mains() {
+int main() {
   cte_init(on_interrupt);
 
   for (int i = 0; i < LENGTH(tasks); i++) {

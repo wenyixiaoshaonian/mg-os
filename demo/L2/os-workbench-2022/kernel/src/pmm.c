@@ -1,6 +1,6 @@
 #include <common.h>
 
-spinlock_t *slock;
+spinlock_p *slock;
 size_t len = 0;
 size_t used_len = 0;
 
@@ -20,10 +20,10 @@ h_block *pre = NULL;
 #define USE 1
 #define FREE 0
 
-void spin_init(spinlock_t *lk) {
+void spin_init(spinlock_p *lk) {
   *lk = 0;
 }
-void spin_lock(spinlock_t *lk) {
+void spin_lock(spinlock_p *lk) {
   while (1) {
     intptr_t value = atomic_xchg(lk, 1);
     if (value == 0) {
@@ -31,7 +31,7 @@ void spin_lock(spinlock_t *lk) {
     }
   }
 }
-void spin_unlock(spinlock_t *lk) {
+void spin_unlock(spinlock_p *lk) {
   atomic_xchg(lk, 0);
 }
 

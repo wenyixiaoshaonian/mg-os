@@ -2,7 +2,7 @@
 
 #define MAXBLOCK 16384   //16*1024
 
-extern spinlock_t *slock;
+extern spinlock_p *slock;
 enum ops { OP_ALLOC = 0, OP_FREE };
 struct malloc_op {
   enum ops type;
@@ -48,7 +48,7 @@ static void stress_test() {
   }
 }
 
-// extern spinlock_t *slock;
+// extern spinlock_p *slock;
 static void os_init() {
   pmm->init();
 }
@@ -66,11 +66,14 @@ static void os_run() {
 }
 
 static Context os_trap(Event ev, Context *context) {
+  Context  context_ret;
 
+  return context_ret;
 }
 
 static void os_on_irq(int seq, int event, handler_t handler) {
 
+  return;
 }
 
 MODULE_DEF(os) = {
