@@ -1,8 +1,13 @@
 #include <common.h>
 
 #define MAXBLOCK 16384   //16*1024
+#define MAX_CPU 8
 
 extern spinlock_p *slock;
+
+Task *currents[MAX_CPU];
+#define current currents[cpu_current()]
+
 enum ops { OP_ALLOC = 0, OP_FREE };
 struct malloc_op {
   enum ops type;
@@ -51,6 +56,7 @@ static void stress_test() {
 // extern spinlock_p *slock;
 static void os_init() {
   pmm->init();
+  kmt->init();
 }
 
 static void os_run() {
@@ -66,9 +72,15 @@ static void os_run() {
 }
 
 static Context os_trap(Event ev, Context *context) {
-  Context  context_ret;
-
-  return context_ret;
+  extern Task tasks[];
+  if (!current)
+    current = &tasks[0];
+  else
+    current->context = ctx;   //更新线程的运行状态
+  do {
+    current = current->next;
+  } while ((current - tasks) % cpu_count() != cpu_current());   //后期需要优化调度算法
+  return current->context;
 }
 
 static void os_on_irq(int seq, int event, handler_t handler) {

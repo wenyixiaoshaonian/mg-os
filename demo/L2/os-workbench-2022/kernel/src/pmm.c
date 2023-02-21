@@ -41,25 +41,28 @@ h_block* find_block(size_t size) {
     return NULL;
   }
   heap_block = head;
+  iset(false);
   spin_lock(slock);
   while(heap_block) {
     if(heap_block->size == size && heap_block->status == FREE) {
       // printf("find the memory at %p...\n",heap_block);
       heap_block->status = USE;
       spin_unlock(slock);
+      iset(true);
       return heap_block;
     }
     // printf("memory at %p...status = %d\n",heap_block,heap_block->status);
     heap_block = heap_block->next;
   }
   spin_unlock(slock);
+  iset(true);
   // printf("can not find the memory !!!\n");
   return NULL;
 }
 
 h_block* create_block(size_t size) {
   h_block* heap_block = NULL;
-
+  iset(false);
   spin_lock(slock);
   if(used_len + HEADSIZE + size < len) {
     heap_block = heap.start + used_len;
@@ -69,6 +72,7 @@ h_block* create_block(size_t size) {
   else {
     printf("there is not enough memory...\n");
     spin_unlock(slock);
+    iset(true);
     return NULL;
   }
   heap_block->size = size;
@@ -81,18 +85,22 @@ h_block* create_block(size_t size) {
   pre = heap_block;
   // printf(">>== %d   %p  block->use_flag %d\n",cpu_current(),heap_block->adr,heap_block->use_flag);
   spin_unlock(slock);
+  iset(true);
   return heap_block;
 }
 
 bool free_block(h_block* block) {
+  iset(false);
   spin_lock(slock);
   if(block->status == FREE || block->use_flag != 0x55aa) {
     // printf(">>== %d  kfree failed.....%p  block->status = %d  block->use_flag %d\n",cpu_current(),block->adr,block->status,block->use_flag);
     spin_unlock(slock);
+    iset(true);
     return false;
   }
   block->status = FREE;
   spin_unlock(slock);
+  iset(true);
   return true;
 }
 
