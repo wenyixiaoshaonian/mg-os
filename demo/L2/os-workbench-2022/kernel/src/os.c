@@ -79,7 +79,7 @@ static Context os_trap(Event ev, Context *context) {
     current->context = ctx;   //更新线程的运行状态
   do {
     current = current->next;
-  } while ((current - tasks) % cpu_count() != cpu_current());   //后期需要优化调度算法
+  } while (((current - tasks) % cpu_count() != cpu_current()) && (tasks.status == RUNNING));   //后期需要优化调度算法
   return current->context;
 }
 
