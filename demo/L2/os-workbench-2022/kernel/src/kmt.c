@@ -66,7 +66,7 @@ static void kmt_spin_lock(spinlock_t *lk) {
         enqueue(lk, current);        //添加到等待队列
     }
     else {
-        lk->locked ++;
+        lk->locked++;
         acq = 1;
     }
     spin_unlock(&lk->lock);
