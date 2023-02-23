@@ -30,7 +30,7 @@ struct task {
   struct {
     int status;
     const char *name;
-    struct task *next;
+    // struct task *next;
     void      (*entry)(void *);
     Context    *context;
   };

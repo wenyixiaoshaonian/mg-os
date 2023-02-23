@@ -8,7 +8,7 @@ extern Task_List *task_head;
 extern Task_List *task_read;
 extern spinlock_t *splk;
 extern sem_t *semlk;
-#define MAX_CPU 8
+#define MAX_CPU 9
 
 Task *currents[MAX_CPU];
 #define current currents[cpu_current()]
@@ -62,6 +62,18 @@ static void stress_test() {
   }
 }
 
+static void producer(void *arg) {
+  printf(">>>====123\n");
+  kmt->sem_signal(semlk);
+  printf("(");
+  }
+
+static void consumer(void *arg) {
+  printf(">>>====456\n");
+  kmt->sem_wait(semlk);
+  printf(")");
+  }
+
 // extern spinlock_p *slock;
 static void os_init() {
   pmm->init();
@@ -69,11 +81,30 @@ static void os_init() {
 }
 
 static void os_run() {
-  iset(true);
+  
   for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
 //  stress_test();
+  kmt->create(pmm->alloc(sizeof(task_t)),
+              "test-thread-1", producer, NULL);
+  kmt->create(pmm->alloc(sizeof(task_t)),
+              "test-thread-2", producer, NULL);
+  kmt->create(pmm->alloc(sizeof(task_t)),
+              "test-thread-3", consumer, NULL);
+  kmt->create(pmm->alloc(sizeof(task_t)),
+              "test-thread-4", consumer, NULL);
+
+  kmt->create(pmm->alloc(sizeof(task_t)),
+              "test-thread-5", consumer, NULL);
+  kmt->create(pmm->alloc(sizeof(task_t)),
+              "test-thread-6", consumer, NULL);
+  kmt->create(pmm->alloc(sizeof(task_t)),
+              "test-thread-7", consumer, NULL);
+  kmt->create(pmm->alloc(sizeof(task_t)),
+              "test-thread-8", consumer, NULL);
+  printf(">>>====kmt create finished\n");
+  iset(true);
   while (1) {
     ;
   }
@@ -83,13 +114,17 @@ static Context *os_trap(Event ev, Context *context) {
   Context * cret;
   irq_handle *tmp = ihandle_head;
 
+  printf("os_trap start....\n");
   kmt->spin_lock(splk);
+  //printf("os_trap start  aaaaa....\n");
   current = task_read->cur;
   current->context = context;   //更新线程的运行状态
   task_read = task_read->next;
   if (!task_read) {
     task_read = task_head;    //循环秩序链表中的数据
   }
+  //printf(">>>=== 1112 current = %p....\n",current);
+//  printf("os_trap start  111111....\n");
   kmt->spin_unlock(splk);
 
   while(tmp) {
@@ -109,13 +144,14 @@ static Context *os_trap(Event ev, Context *context) {
       }
     } while ((current->status != RUNNING));   //后期需要优化调度算法
   kmt->spin_unlock(splk);
+  printf(">>>=== 111 current->entry = %p....\n",current->entry);
   return current->context;
 }
   
   
 
 static void os_on_irq(int seq, int event, handler_t handler) {
-  ihandle = pmm->alloc(irq_handle);
+  ihandle = pmm->alloc(sizeof(irq_handle));
   ihandle->seq = seq;
   ihandle->event = event;
   ihandle->handler = handler;

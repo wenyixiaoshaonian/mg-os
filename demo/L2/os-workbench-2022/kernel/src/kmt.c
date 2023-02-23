@@ -15,10 +15,13 @@ sem_t *semlk = NULL;
 
 void enqueue(spinlock_t *lk,Task *cur) {
     Task_List *task_cur = (task_t *)pmm->alloc(sizeof(Task_List));
+    printf(">>>=== 222 task_cur = %p....\n",task_cur);
     task_cur->cur = task_cur;
     task_cur->next = NULL;
     if(!lk->waitlist_head) {
         lk->waitlist_head = task_cur;
+        printf(">>>=== waitlist_head = %p....\n",lk->waitlist_head);
+
     }
     lk->wait_list = task_cur;
     lk->wait_list = lk->wait_list->next;
@@ -51,70 +54,73 @@ static void spin_unlock(int *lock) {
 }
 /*---------------------------------------metux-------------------------------------------------------*/
 static void kmt_spin_init(spinlock_t *lk, const char *name) {
-    lk = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
+    
     lk->name = name;
     lk->lock = 0;       //解锁状态
-    lk->locked = 0;     //解锁状态
+    lk->locked = 1;     //解锁状态
     lk->lock_num = 1;   //当作互斥锁使用
-    lk->wait_list = (Task_List *)NULL;
+    lk->wait_list = NULL;
+    lk->waitlist_head = NULL;
 }
 static void kmt_spin_lock(spinlock_t *lk) {
     int acq = 0;
     spin_lock(&lk->lock);
-    if(lk->locked >= lk->lock_num) {
+    if(lk->locked <= 0)  {
         current->status = WAITTING;
         enqueue(lk, current);        //添加到等待队列
-    }
-    else {
-        lk->locked++;
+        printf(">>>=== 33333 waitlist_head = %p....\n",lk->waitlist_head);
         acq = 1;
+    } 
+    else {
+        lk->locked--;
+        
     }
     spin_unlock(&lk->lock);
+    printf(">>>=== 222 acq = %d....\n",acq);
     if(acq)
         yield(); // 阻塞时切换
 }
 
 static void kmt_spin_unlock(spinlock_t *lk) {
     spin_lock(&lk->lock);
-    if(lk->waitlist_head) {
+    if(lk->waitlist_head != NULL) {
+        printf(">>>=== 111 lk->waitlist_head = %p....\n",lk->waitlist_head);
         Task *task = dequeue(lk);
         task->status = RUNNING;
     }
-    else if(lk->locked -1  >= 0) 
-        lk->locked --;
-    else
-        lk->locked = 0;
+    else if(lk->locked < lk->lock_num)
+        lk->locked++;
     spin_unlock(&lk->lock);
 }
 
 /*---------------------------------------sem-------------------------------------------------------*/
 static void kmt_sem_init(sem_t *sem, const char *name, int value) {
-    sem = (sem_t *)pmm->alloc(sizeof(sem_t));
     sem->name = name;
     //sem_t->count = value;
     sem->slock->lock = 0;             //解锁状态
-    sem->slock->locked = 0;           //解锁状态
+    sem->slock->locked = 0;           //初始没有可用资源
     sem->slock->lock_num = value;     //当作信号量使用
     sem->slock->wait_list = NULL;
+    sem->slock->waitlist_head = NULL;
 }
 
 static void kmt_sem_wait(sem_t *sem) {
     kmt_spin_lock(sem->slock);
+    printf(">>>=== aaa ....\n");
 }
 static void kmt_sem_signal(sem_t *sem) {
     kmt_spin_unlock(sem->slock);
+    printf(">>>=== bbb ....\n");
 }
 
 /*---------------------------------------thread-------------------------------------------------------*/
 static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
 
-    task = (task_t *)pmm->alloc(sizeof(task_t));
     task->name    = name;
     task->entry   = entry;
-    //task->stack   = (uint8_t *)pmm->alloc(STACK_SIZE);
     Area stack    = (Area) { &task->context + 1, task + 1 };
     task->context = kcontext(stack, task->entry, arg);
-    task->next    = NULL;
+    // task->next    = NULL;
     task->status  = RUNNING;
 
     //将所有任务加入到一个全局链表中
@@ -124,17 +130,20 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
     if(!task_head) {
         task_head = task_cur;
         task_read = task_head;
+        //printf(">>>===  task_read->cur = %p....\n",task_read->cur);
     }
     else {
         task_pre->next = task_cur;
     }
     task_pre = task_cur;
-
+    //printf(">>>===  task->entry = %p....\n",task->entry);
     return 0;
 }
 
 static void kmt_init() {
     //锁的初始化
+    splk = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
+    semlk = (sem_t *)pmm->alloc(sizeof(sem_t));
     kmt_spin_init(splk,"spin lock");
     kmt_sem_init(semlk,"sem lock",5);
 }

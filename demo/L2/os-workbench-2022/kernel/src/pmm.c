@@ -37,6 +37,7 @@ void spin_unlock(spinlock_p *lk) {
 
 h_block* find_block(size_t size) {
   h_block* heap_block = NULL;
+  bool i = ienabled();
   if(!pre) {
     return NULL;
   }
@@ -55,19 +56,21 @@ h_block* find_block(size_t size) {
     heap_block = heap_block->next;
   }
   spin_unlock(slock);
-  iset(true);
+  if (i)
+    iset(true);
   // printf("can not find the memory !!!\n");
   return NULL;
 }
 
 h_block* create_block(size_t size) {
   h_block* heap_block = NULL;
+  bool i = ienabled();
   iset(false);
   spin_lock(slock);
   if(used_len + HEADSIZE + size < len) {
     heap_block = heap.start + used_len;
     used_len += HEADSIZE + size;
-    printf(">>>=== %d  free size = %d \n",cpu_current(),len - used_len);
+    //printf(">>>=== %d  free size = %d \n",cpu_current(),len - used_len);
   }
   else {
     printf("there is not enough memory...\n");
@@ -85,11 +88,13 @@ h_block* create_block(size_t size) {
   pre = heap_block;
   // printf(">>== %d   %p  block->use_flag %d\n",cpu_current(),heap_block->adr,heap_block->use_flag);
   spin_unlock(slock);
-  iset(true);
+  if (i)
+    iset(true);
   return heap_block;
 }
 
 bool free_block(h_block* block) {
+  bool i = ienabled();
   iset(false);
   spin_lock(slock);
   if(block->status == FREE || block->use_flag != 0x55aa) {
@@ -100,7 +105,8 @@ bool free_block(h_block* block) {
   }
   block->status = FREE;
   spin_unlock(slock);
-  iset(true);
+  if (i)
+    iset(true);
   return true;
 }
 
