@@ -25,9 +25,10 @@ void enqueue(spinlock_t *lk,Task *cur) {
 }
 
 Task *dequeue(spinlock_t *lk) {
-    Task *ret = NULL;
-    ret = lk->waitlist_head->cur;
+    Task_List *task_cur = lk->waitlist_head;
+    Task *ret = task_cur->cur;
     lk->waitlist_head = lk->waitlist_head->next;
+    pmm->free(task_cur); 
     return ret;
 }
 
