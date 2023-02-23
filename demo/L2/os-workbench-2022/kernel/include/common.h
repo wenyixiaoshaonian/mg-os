@@ -15,8 +15,9 @@ enum os_status
 };
 
 struct task_List{
-  struct task *cur;
-  struct task *next;
+    struct task *cur;
+    struct task_List *next;
+    struct task_List *list_head;
 };
 
 struct irq_h{

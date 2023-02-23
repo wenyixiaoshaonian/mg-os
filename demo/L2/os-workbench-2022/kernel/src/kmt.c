@@ -14,11 +14,21 @@ spinlock_t *splk = NULL;
 sem_t *semlk = NULL;
 
 void enqueue(Task_List *list,Task *cur) {
-    ;//todo
+    Task_List *task_cur = (task_t *)pmm->alloc(sizeof(Task_List));
+    task_cur->cur = task_cur;
+    task_cur->next = NULL;
+    if(!list->list_head) {
+        list->list_head = task_cur;
+    }
+    list = task_cur;
+    list = list->next;
 }
 
 Task *dequeue(Task_List *list) {
-    return list->cur;//todo
+    Task *ret = NULL;
+    ret = list->list_head->cur;
+    list->list_head = list->list_head->next;
+    return ret;
 }
 
 /*---------------------------------------spin-------------------------------------------------------*/
@@ -65,7 +75,7 @@ static void kmt_spin_lock(spinlock_t *lk) {
 
 static void kmt_spin_unlock(spinlock_t *lk) {
     spin_lock(&lk->lock);
-    if(lk->wait_list) {
+    if(lk->wait_list->list_head) {
         Task *task = dequeue(lk->wait_list);
         task->status = RUNNING;
     }
@@ -107,17 +117,17 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
     task->status  = RUNNING;
 
     //将所有任务加入到一个全局链表中
+    Task_List *task_cur = (task_t *)pmm->alloc(sizeof(Task_List));
+    task_cur->cur = task;
+    task_cur->next = NULL;
     if(!task_head) {
-        task_pre->cur = task;
-        task_pre->next = NULL;
-        task_head = task_pre;
+        task_head = task_cur;
         task_read = task_head;
     }
     else {
-        task_pre->next = task;
-        task_pre->cur = task;
-        task_pre->next = NULL;  
+        task_pre->next = task_cur;
     }
+    task_pre = task_cur;
 
     return 0;
 }
