@@ -1,13 +1,17 @@
 #include <common.h>
 
 #define MAXBLOCK 16384   //16*1024
-#define MAX_CPU 8
+
 
 extern spinlock_p *slock;
+
+#define MAX_CPU 8
 
 Task *currents[MAX_CPU];
 #define current currents[cpu_current()]
 
+irq_handle *ihandle = NULL;
+irq_handle *ihandle_head = NULL;
 enum ops { OP_ALLOC = 0, OP_FREE };
 struct malloc_op {
   enum ops type;
@@ -44,11 +48,13 @@ static void stress_test() {
           return;
         }
       // printf("%d malloc adr successful  adr = %p  size = %d\n",cpu_current(),op.addr,op.sz);
-      // break;
-      // case OP_FREE:
-        kfree(op.addr); 
-
-      break;
+      // 
+      
+        pmm->free(op.addr); 
+        break;
+      case OP_FREE:
+        break;
+      
     }
   }
 }
@@ -60,30 +66,51 @@ static void os_init() {
 }
 
 static void os_run() {
-  void *test = NULL;
-  void *test2 = NULL;
+  iset(true);
   for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
-  stress_test();
+//  stress_test();
   while (1) {
     ;
   }
 }
 
-static Context os_trap(Event ev, Context *context) {
-  extern Task tasks[];
+static Context *os_trap(Event ev, Context *context) {
+  Task *tasks = NULL;
+  Context * cret;
+  irq_handle *tmp = ihandle_head;
   if (!current)
     current = &tasks[0];
   else
-    current->context = ctx;   //更新线程的运行状态
-  do {
-    current = current->next;
-  } while (((current - tasks) % cpu_count() != cpu_current()) && (tasks.status == RUNNING));   //后期需要优化调度算法
+    current->context = context;   //更新线程的运行状态
+  // 根据不同事件选择秩序不同中断处理程序
+  while(tmp) {
+    if(tmp->event == ev.event) {
+      cret = tmp->handler(ev,context);
+      return cret;
+    }
+    else {      //默认进行进程调度
+      do {
+        current = current->next;
+      } while (((current - tasks) % cpu_count() != cpu_current()) && (tasks->status == RUNNING));   //后期需要优化调度算法
+    }
+  }
+  
   return current->context;
 }
 
 static void os_on_irq(int seq, int event, handler_t handler) {
+  ihandle = pmm->alloc(32);
+  ihandle->seq = seq;
+  ihandle->event = event;
+  ihandle->handler = handler;
+  ihandle->next = NULL;
+
+  if(!ihandle_head) 
+    ihandle_head = ihandle;
+
+  ihandle = ihandle->next;
 
   return;
 }
