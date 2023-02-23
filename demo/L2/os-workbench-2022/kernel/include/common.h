@@ -14,6 +14,11 @@ enum os_status
   WAITTING,
 };
 
+struct task_List{
+  struct task *cur;
+  struct task *next;
+};
+
 struct irq_h{
   int seq;
   int event;

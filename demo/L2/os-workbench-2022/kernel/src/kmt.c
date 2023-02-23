@@ -7,6 +7,12 @@
 extern Task *currents[MAX_CPU];
 #define current currents[cpu_current()]
 
+Task_List *task_head = NULL;
+Task_List *task_pre = NULL;
+Task_List *task_read = NULL;
+spinlock_t *splk = NULL;
+sem_t *semlk = NULL;
+
 void enqueue(Task_List *list,Task *cur) {
     ;//todo
 }
@@ -15,27 +21,6 @@ Task *dequeue(Task_List *list) {
     return list->cur;//todo
 }
 
-/*---------------------------------------thread-------------------------------------------------------*/
-static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
-
-    task->name    = name;
-    task->entry   = entry;
-    //task->stack   = (uint8_t *)pmm->alloc(STACK_SIZE);
-    Area stack    = (Area) { &task->context + 1, task + 1 };
-    task->context = kcontext(stack, task->entry, arg);
-    task->next    = NULL;
-    task->status  = RUNNING;
-    return 0;
-}
-
-static void kmt_init() {
-    //创建一个链表头 锁的初始状态
-}
-
-static void kmt_teardown(task_t *task) {
-    //主要回收pmm分配的stack
-    return;
-}
 /*---------------------------------------spin-------------------------------------------------------*/
 static void spin_lock(int *lock) {
     iset(false);
@@ -55,6 +40,7 @@ static void spin_unlock(int *lock) {
 }
 /*---------------------------------------metux-------------------------------------------------------*/
 static void kmt_spin_init(spinlock_t *lk, const char *name) {
+    lk = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
     lk->name = name;
     lk->lock = 0;       //解锁状态
     lk->locked = 0;     //解锁状态
@@ -92,6 +78,7 @@ static void kmt_spin_unlock(spinlock_t *lk) {
 
 /*---------------------------------------sem-------------------------------------------------------*/
 static void kmt_sem_init(sem_t *sem, const char *name, int value) {
+    sem = (sem_t *)pmm->alloc(sizeof(sem_t));
     sem->name = name;
     //sem_t->count = value;
     sem->slock->lock = 0;             //解锁状态
@@ -107,6 +94,44 @@ static void kmt_sem_signal(sem_t *sem) {
     kmt_spin_unlock(sem->slock);
 }
 
+/*---------------------------------------thread-------------------------------------------------------*/
+static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
+
+    task = (task_t *)pmm->alloc(sizeof(task_t));
+    task->name    = name;
+    task->entry   = entry;
+    //task->stack   = (uint8_t *)pmm->alloc(STACK_SIZE);
+    Area stack    = (Area) { &task->context + 1, task + 1 };
+    task->context = kcontext(stack, task->entry, arg);
+    task->next    = NULL;
+    task->status  = RUNNING;
+
+    //将所有任务加入到一个全局链表中
+    if(!task_head) {
+        task_pre->cur = task;
+        task_pre->next = NULL;
+        task_head = task_pre;
+        task_read = task_head;
+    }
+    else {
+        task_pre->next = task;
+        task_pre->cur = task;
+        task_pre->next = NULL;  
+    }
+
+    return 0;
+}
+
+static void kmt_init() {
+    //锁的初始化
+    kmt_spin_init(splk,"spin lock");
+    kmt_sem_init(semlk,"sem lock",5);
+}
+
+static void kmt_teardown(task_t *task) {
+    //主要回收pmm分配的stack
+    return;
+}
 MODULE_DEF(kmt) = {
     .init = kmt_init,
     .create = kmt_create,

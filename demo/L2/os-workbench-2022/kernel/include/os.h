@@ -1,9 +1,6 @@
 #include <common.h>
 
-struct task_List{
-  struct task *cur;
-  struct task *next;
-};
+
 
 struct spinlock{
   const char *name;

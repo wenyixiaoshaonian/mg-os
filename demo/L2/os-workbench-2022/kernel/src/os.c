@@ -4,7 +4,10 @@
 
 
 extern spinlock_p *slock;
-
+extern Task_List *task_head;
+extern Task_List *task_read;
+extern spinlock_t *splk;
+extern sem_t *semlk;
 #define MAX_CPU 8
 
 Task *currents[MAX_CPU];
@@ -77,28 +80,39 @@ static void os_run() {
 }
 
 static Context *os_trap(Event ev, Context *context) {
-  Task *tasks = NULL;
   Context * cret;
   irq_handle *tmp = ihandle_head;
-  if (!current)
-    current = &tasks[0];
-  else
-    current->context = context;   //更新线程的运行状态
-  // 根据不同事件选择秩序不同中断处理程序
+
+  kmt->spin_lock(splk);
+  current = task_read->cur;
+  current->context = context;   //更新线程的运行状态
+  task_read = task_read->next;
+  if (!task_read) {
+    task_read = task_head;    //循环秩序链表中的数据
+  }
+  kmt->spin_unlock(splk);
+
   while(tmp) {
     if(tmp->event == ev.event) {
       cret = tmp->handler(ev,context);
       return cret;
     }
-    else {      //默认进行进程调度
-      do {
-        current = current->next;
-      } while (((current - tasks) % cpu_count() != cpu_current()) && (tasks->status == RUNNING));   //后期需要优化调度算法
-    }
-  }
-  
+    tmp = tmp->next;
+  }  
+  kmt->spin_lock(splk);
+  //没有事件匹配，默认进行进程调度,调度当前线程的下一个
+  do {
+      current = task_read->cur; 
+      task_read = task_read->next;
+      if (!task_read) {
+        task_read = task_head;    //循环秩序链表中的数据
+      }
+    } while ((current->status != RUNNING));   //后期需要优化调度算法
+  kmt->spin_unlock(splk);
   return current->context;
 }
+  
+  
 
 static void os_on_irq(int seq, int event, handler_t handler) {
   ihandle = pmm->alloc(32);
