@@ -13,21 +13,21 @@ Task_List *task_read = NULL;
 spinlock_t *splk = NULL;
 sem_t *semlk = NULL;
 
-void enqueue(Task_List *list,Task *cur) {
+void enqueue(spinlock_t *lk,Task *cur) {
     Task_List *task_cur = (task_t *)pmm->alloc(sizeof(Task_List));
     task_cur->cur = task_cur;
     task_cur->next = NULL;
-    if(!list->list_head) {
-        list->list_head = task_cur;
+    if(!lk->waitlist_head) {
+        lk->waitlist_head = task_cur;
     }
-    list = task_cur;
-    list = list->next;
+    lk->wait_list = task_cur;
+    lk->wait_list = lk->wait_list->next;
 }
 
-Task *dequeue(Task_List *list) {
+Task *dequeue(spinlock_t *lk) {
     Task *ret = NULL;
-    ret = list->list_head->cur;
-    list->list_head = list->list_head->next;
+    ret = lk->waitlist_head->cur;
+    lk->waitlist_head = lk->waitlist_head->next;
     return ret;
 }
 
@@ -62,7 +62,7 @@ static void kmt_spin_lock(spinlock_t *lk) {
     spin_lock(&lk->lock);
     if(lk->locked >= lk->lock_num) {
         current->status = WAITTING;
-        enqueue(lk->wait_list, current);        //添加到等待队列
+        enqueue(lk, current);        //添加到等待队列
     }
     else {
         lk->locked ++;
@@ -75,8 +75,8 @@ static void kmt_spin_lock(spinlock_t *lk) {
 
 static void kmt_spin_unlock(spinlock_t *lk) {
     spin_lock(&lk->lock);
-    if(lk->wait_list->list_head) {
-        Task *task = dequeue(lk->wait_list);
+    if(lk->waitlist_head) {
+        Task *task = dequeue(lk);
         task->status = RUNNING;
     }
     else if(lk->locked -1  >= 0) 

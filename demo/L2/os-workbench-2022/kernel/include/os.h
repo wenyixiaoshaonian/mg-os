@@ -8,6 +8,7 @@ struct spinlock{
   int locked;
   int lock_num;
   struct task_List *wait_list;
+  struct task_List *waitlist_head;
 };
 
 struct semaphore {
