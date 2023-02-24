@@ -63,16 +63,23 @@ static void stress_test() {
 }
 
 static void producer(void *arg) {
-  printf(">>>====123\n");
-  kmt->sem_signal(semlk);
-  printf("(");
+  while(1) {
+    //printf(">>>====123\n");
+    kmt->sem_signal(semlk);
+    printf("(");
+    for (int volatile i = 0; i < 100000; i++) ;
+  }
+  
   }
 
 static void consumer(void *arg) {
-  printf(">>>====456\n");
-  kmt->sem_wait(semlk);
-  printf(")");
+  while(1) {
+    //printf(">>>====456\n");
+    kmt->sem_wait(semlk);
+    printf(")");
+    for (int volatile i = 0; i < 100000; i++) ;
   }
+}
 
 // extern spinlock_p *slock;
 static void os_init() {
@@ -86,24 +93,25 @@ static void os_run() {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
 //  stress_test();
+
   kmt->create(pmm->alloc(sizeof(task_t)),
               "test-thread-1", producer, NULL);
   kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-2", producer, NULL);
+              "test-thread-2", consumer, NULL);
   kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-3", consumer, NULL);
+              "test-thread-3", producer, NULL);
   kmt->create(pmm->alloc(sizeof(task_t)),
               "test-thread-4", consumer, NULL);
 
-  kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-5", consumer, NULL);
-  kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-6", consumer, NULL);
-  kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-7", consumer, NULL);
-  kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-8", consumer, NULL);
-  printf(">>>====kmt create finished\n");
+  // kmt->create(pmm->alloc(sizeof(task_t)),
+  //             "test-thread-5", consumer, NULL);
+  // kmt->create(pmm->alloc(sizeof(task_t)),
+  //             "test-thread-6", consumer, NULL);
+  // kmt->create(pmm->alloc(sizeof(task_t)),
+  //             "test-thread-7", consumer, NULL);
+  // kmt->create(pmm->alloc(sizeof(task_t)),
+  //             "test-thread-8", consumer, NULL);
+  //printf(">>>====kmt create finished\n");
   iset(true);
   while (1) {
     ;
@@ -113,18 +121,22 @@ static void os_run() {
 static Context *os_trap(Event ev, Context *context) {
   Context * cret;
   irq_handle *tmp = ihandle_head;
-
-  printf("os_trap start....\n");
+  int flag = 0;
+  //printf("os_trap start....\n");
   kmt->spin_lock(splk);
-  //printf("os_trap start  aaaaa....\n");
-  current = task_read->cur;
-  current->context = context;   //更新线程的运行状态
-  task_read = task_read->next;
-  if (!task_read) {
-    task_read = task_head;    //循环秩序链表中的数据
+  //printf(" current  = %p   %d\n",current,cpu_current());
+  if(!current) {
+    current = task_read->cur;     //从主线程进入，无需更新主进程的状态
+    flag = 1;
   }
-  //printf(">>>=== 1112 current = %p....\n",current);
-//  printf("os_trap start  111111....\n");
+  else {
+    current->context = context;   //更新线程的运行状态
+  }
+  // task_read = task_read->next;
+  // if (!task_read) {
+  //   task_read = task_head;    //循环秩序链表中的数据
+  // }
+  //printf(" 111 current name = %p\n",current);
   kmt->spin_unlock(splk);
 
   while(tmp) {
@@ -138,13 +150,16 @@ static Context *os_trap(Event ev, Context *context) {
   //没有事件匹配，默认进行进程调度,调度当前线程的下一个
   do {
       current = task_read->cur; 
+    
       task_read = task_read->next;
       if (!task_read) {
         task_read = task_head;    //循环秩序链表中的数据
       }
+    
+      //printf(" current name = %s\n",current->name);
     } while ((current->status != RUNNING));   //后期需要优化调度算法
   kmt->spin_unlock(splk);
-  printf(">>>=== 111 current->entry = %p....\n",current->entry);
+  //printf(">>>=== 111 current->entry = %p....\n",current->entry);
   return current->context;
 }
   

@@ -15,12 +15,12 @@ sem_t *semlk = NULL;
 
 void enqueue(spinlock_t *lk,Task *cur) {
     Task_List *task_cur = (task_t *)pmm->alloc(sizeof(Task_List));
-    printf(">>>=== 222 task_cur = %p....\n",task_cur);
+    //printf(">>>=== enqueue task_cur = %p....\n",task_cur);
     task_cur->cur = task_cur;
     task_cur->next = NULL;
     if(!lk->waitlist_head) {
         lk->waitlist_head = task_cur;
-        printf(">>>=== waitlist_head = %p....\n",lk->waitlist_head);
+        //printf(">>>=== waitlist_head = %p....\n",lk->waitlist_head);
 
     }
     lk->wait_list = task_cur;
@@ -31,6 +31,7 @@ Task *dequeue(spinlock_t *lk) {
     Task_List *task_cur = lk->waitlist_head;
     Task *ret = task_cur->cur;
     lk->waitlist_head = lk->waitlist_head->next;
+    //printf(">>>=== dequeue task_cur = %p....\n",task_cur);
     pmm->free(task_cur); 
     return ret;
 }
@@ -68,7 +69,7 @@ static void kmt_spin_lock(spinlock_t *lk) {
     if(lk->locked <= 0)  {
         current->status = WAITTING;
         enqueue(lk, current);        //添加到等待队列
-        printf(">>>=== 33333 waitlist_head = %p....\n",lk->waitlist_head);
+        printf("enqueue......\n");
         acq = 1;
     } 
     else {
@@ -76,7 +77,7 @@ static void kmt_spin_lock(spinlock_t *lk) {
         
     }
     spin_unlock(&lk->lock);
-    printf(">>>=== 222 acq = %d....\n",acq);
+    //printf(">>>=== 222 acq = %d....\n",acq);
     if(acq)
         yield(); // 阻塞时切换
 }
@@ -84,13 +85,17 @@ static void kmt_spin_lock(spinlock_t *lk) {
 static void kmt_spin_unlock(spinlock_t *lk) {
     spin_lock(&lk->lock);
     if(lk->waitlist_head != NULL) {
-        printf(">>>=== 111 lk->waitlist_head = %p....\n",lk->waitlist_head);
+        printf("dequeue......\n");
         Task *task = dequeue(lk);
         task->status = RUNNING;
     }
     else if(lk->locked < lk->lock_num)
         lk->locked++;
+    else
+        //printf(">>>=== sem num too many = %d....\n",lk->locked);
+        ;
     spin_unlock(&lk->lock);
+    //printf(">>>=== 111 lk->locked = %d....\n",lk->locked);
 }
 
 /*---------------------------------------sem-------------------------------------------------------*/
@@ -106,11 +111,11 @@ static void kmt_sem_init(sem_t *sem, const char *name, int value) {
 
 static void kmt_sem_wait(sem_t *sem) {
     kmt_spin_lock(sem->slock);
-    printf(">>>=== aaa ....\n");
+    //printf("111 locked %d \n",sem->slock->locked);
 }
 static void kmt_sem_signal(sem_t *sem) {
     kmt_spin_unlock(sem->slock);
-    printf(">>>=== bbb ....\n");
+    //printf("222 locked %d \n",sem->slock->locked);
 }
 
 /*---------------------------------------thread-------------------------------------------------------*/
@@ -144,6 +149,7 @@ static void kmt_init() {
     //锁的初始化
     splk = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
     semlk = (sem_t *)pmm->alloc(sizeof(sem_t));
+    semlk->slock = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
     kmt_spin_init(splk,"spin lock");
     kmt_sem_init(semlk,"sem lock",5);
 }
