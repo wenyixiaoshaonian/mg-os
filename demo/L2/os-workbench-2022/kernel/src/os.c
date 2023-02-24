@@ -64,7 +64,11 @@ static void stress_test() {
 
 static void producer(void *arg) {
   while(1) {
+    bool i = ienabled();
+    iset(false);
     kmt->sem_signal(semlk);
+    if (i)
+      iset(true);
     printf("(");
     for (int volatile i = 0; i < 100000; i++) ;
   }
@@ -73,7 +77,11 @@ static void producer(void *arg) {
 
 static void consumer(void *arg) {
   while(1) {
+    bool i = ienabled();
+    iset(false);
     kmt->sem_wait(semlk);
+    if (i)
+      iset(true);
     printf(")");
     for (int volatile i = 0; i < 100000; i++) ;
   }
@@ -165,6 +173,7 @@ static Context *os_trap(Event ev, Context *context) {
     } while ((current->status != RUNNING));   //后期需要优化调度算法
   kmt->spin_unlock(splk);
   //printf("current name = %s \n",current->name);
+  
   return current->context;
 }
   
@@ -206,7 +215,7 @@ static Context *saved_context(Event ev, Context *context) {
     //printf(" current name = %s   current->status  %d \n",current->name,current->status);
     } while ((current->status != RUNNING));   //后期需要优化调度算法
     kmt->spin_unlock(splk);
-    //printf(">>>====  saved_context finished\n");
+    printf(">>>====  saved_context current name = %s\n",current->name);
     return current->context;
 }
 

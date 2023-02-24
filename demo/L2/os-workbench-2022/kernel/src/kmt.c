@@ -38,20 +38,24 @@ Task *dequeue(spinlock_t *lk) {
 
 /*---------------------------------------spin-------------------------------------------------------*/
 static void spin_lock(int *lock) {
+    bool i = ienabled();
     iset(false);
     while (1) {
     intptr_t value = atomic_xchg(lock, 1);
         if (value == 0) {
-            iset(true);
+            if (i)
+                iset(true);
             return;
         } 
     }
 }
 
 static void spin_unlock(int *lock) {
+    bool i = ienabled();
     iset(false);
     atomic_xchg(lock, 0);
-    iset(true);
+    if (i)
+        iset(true);
 }
 /*---------------------------------------metux-------------------------------------------------------*/
 static void kmt_spin_init(spinlock_t *lk, const char *name) {
@@ -76,12 +80,12 @@ static void kmt_spin_lock(spinlock_t *lk) {
         
     }
     spin_unlock(&lk->lock);
+
     //printf(">>>=== 222 acq = %d....\n",acq);
     if(acq) {
-        printf("enqueue......current->name %s\n",current->name);
+        //printf("enqueue......current->name %s\n",current->name);
         yield(); // 阻塞时切换
-    }
-        
+    }       
 }
 
 static void kmt_spin_unlock(spinlock_t *lk) {
@@ -111,11 +115,11 @@ static void kmt_sem_init(sem_t *sem, const char *name, int value) {
 
 static void kmt_sem_wait(sem_t *sem) {
     kmt_spin_lock(sem->slock);
-    //printf("111 locked %d \n",sem->slock->locked);
+    //printf(" %d ",sem->slock->locked);
 }
 static void kmt_sem_signal(sem_t *sem) {
     kmt_spin_unlock(sem->slock);
-    //printf("222 locked %d \n",sem->slock->locked);
+    //printf(" %d ",sem->slock->locked);
 }
 
 /*---------------------------------------thread-------------------------------------------------------*/
