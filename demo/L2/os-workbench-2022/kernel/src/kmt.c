@@ -38,24 +38,24 @@ Task *dequeue(spinlock_t *lk) {
 
 /*---------------------------------------spin-------------------------------------------------------*/
 static void spin_lock(int *lock) {
-    bool i = ienabled();
-    iset(false);
+    //bool i = ienabled();
+    //iset(false);
     while (1) {
     intptr_t value = atomic_xchg(lock, 1);
         if (value == 0) {
-            if (i)
-                iset(true);
+            //if (i)
+            //    iset(true);
             return;
         } 
     }
 }
 
 static void spin_unlock(int *lock) {
-    bool i = ienabled();
-    iset(false);
+    //bool i = ienabled();
+    //iset(false);
     atomic_xchg(lock, 0);
-    if (i)
-        iset(true);
+    //if (i)
+    //    iset(true);
 }
 /*---------------------------------------metux-------------------------------------------------------*/
 static void kmt_spin_init(spinlock_t *lk, const char *name) {
@@ -83,17 +83,19 @@ static void kmt_spin_lock(spinlock_t *lk) {
 
     //printf(">>>=== 222 acq = %d....\n",acq);
     if(acq) {
+        printf("aa %d\n",cpu_current());
         //printf("enqueue......current->name %s\n",current->name);
         yield(); // 阻塞时切换
-    }       
+    }    
 }
 
 static void kmt_spin_unlock(spinlock_t *lk) {
     spin_lock(&lk->lock);
     if(lk->waitlist_head != NULL) {
-        //printf("dequeue......\n");
         Task *task = dequeue(lk);
         task->status = RUNNING;
+        printf("bb %d\n",cpu_current());
+        //printf("deq %s\n",task->name);
     }
     else if(lk->locked < lk->lock_num)
         lk->locked++;
@@ -114,12 +116,20 @@ static void kmt_sem_init(sem_t *sem, const char *name, int value) {
 }
 
 static void kmt_sem_wait(sem_t *sem) {
+    bool i = ienabled();
+    iset(false);
     kmt_spin_lock(sem->slock);
     //printf(" %d ",sem->slock->locked);
+    if (i)
+       iset(true); 
 }
 static void kmt_sem_signal(sem_t *sem) {
+    bool i = ienabled();
+    iset(false);
     kmt_spin_unlock(sem->slock);
     //printf(" %d ",sem->slock->locked);
+    if (i)
+       iset(true); 
 }
 
 /*---------------------------------------thread-------------------------------------------------------*/
@@ -149,6 +159,27 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
     return 0;
 }
 
+static void producer(void *arg) {
+  while(1) {
+    printf("11 %d\n",cpu_current());
+    kmt_sem_signal(semlk);
+    printf("22 %d\n",cpu_current());
+    //printf("(");
+    for (int volatile i = 0; i < 100000; i++) ;
+  }
+  
+  }
+
+static void consumer(void *arg) {
+  while(1) {
+    printf("33 %d\n",cpu_current());
+    kmt_sem_wait(semlk);
+    printf("44 %d\n",cpu_current());
+    //printf(")");
+    for (int volatile i = 0; i < 100000; i++) ;
+  }
+}
+
 static void kmt_init() {
     //锁的初始化
     splk = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
@@ -156,6 +187,25 @@ static void kmt_init() {
     semlk->slock = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
     kmt_spin_init(splk,"spin lock");
     kmt_sem_init(semlk,"sem lock",5);
+
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "thread-1", producer, NULL);
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "thread-2", consumer, NULL);
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "thread-3", producer, NULL);
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "thread-4", consumer, NULL);
+
+  // kmt_create(pmm->alloc(sizeof(task_t)),
+  //             "thread-5", consumer, NULL);
+  // kmt_create(pmm->alloc(sizeof(task_t)),
+  //             "thread-6", consumer, NULL);
+  // kmt_create(pmm->alloc(sizeof(task_t)),
+  //             "thread-7", consumer, NULL);
+  // kmt_create(pmm->alloc(sizeof(task_t)),
+  //             "thread-8", consumer, NULL);
+  //printf(">>>====kmt create finished\n");
 }
 
 static void kmt_teardown(task_t *task) {

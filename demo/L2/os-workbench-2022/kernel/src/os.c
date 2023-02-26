@@ -7,7 +7,6 @@ extern spinlock_p *slock;
 extern Task_List *task_head;
 extern Task_List *task_read;
 extern spinlock_t *splk;
-extern sem_t *semlk;
 #define MAX_CPU 9
 
 Task *currents[MAX_CPU];
@@ -62,58 +61,12 @@ static void stress_test() {
   }
 }
 
-static void producer(void *arg) {
-  while(1) {
-    bool i = ienabled();
-    iset(false);
-    kmt->sem_signal(semlk);
-    if (i)
-      iset(true);
-    printf("(");
-    for (int volatile i = 0; i < 100000; i++) ;
-  }
-  
-  }
-
-static void consumer(void *arg) {
-  while(1) {
-    bool i = ienabled();
-    iset(false);
-    kmt->sem_wait(semlk);
-    if (i)
-      iset(true);
-    printf(")");
-    for (int volatile i = 0; i < 100000; i++) ;
-  }
-}
-
-
-
 static void os_run() {
   
   for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
 //  stress_test();
-
-  kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-1", producer, NULL);
-  kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-2", consumer, NULL);
-  kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-3", producer, NULL);
-  kmt->create(pmm->alloc(sizeof(task_t)),
-              "test-thread-4", consumer, NULL);
-
-  // kmt->create(pmm->alloc(sizeof(task_t)),
-  //             "test-thread-5", consumer, NULL);
-  // kmt->create(pmm->alloc(sizeof(task_t)),
-  //             "test-thread-6", consumer, NULL);
-  // kmt->create(pmm->alloc(sizeof(task_t)),
-  //             "test-thread-7", consumer, NULL);
-  // kmt->create(pmm->alloc(sizeof(task_t)),
-  //             "test-thread-8", consumer, NULL);
-  //printf(">>>====kmt create finished\n");
   iset(true);
   while (1) {
     ;
@@ -124,6 +77,7 @@ static Context *os_trap(Event ev, Context *context) {
   Context * cret;
   irq_handle *tmp = ihandle_head;
   //printf("os_trap start....  event = %d\n",ev);
+  //printf("33\n");
   kmt->spin_lock(splk);
   //printf(" current  = %p   %d\n",current,cpu_current());
   if(!current) {
@@ -133,6 +87,7 @@ static Context *os_trap(Event ev, Context *context) {
       task_read = task_head;    //循环秩序链表中的数据
     }
     kmt->spin_unlock(splk);
+    //printf("aa %d  %s\n",cpu_current(),current->name);
     return current->context;
   }
   else {
@@ -144,15 +99,15 @@ static Context *os_trap(Event ev, Context *context) {
   // }
   //printf("current name = %p\n",current);
   
-
+  //printf("33 %d \n",cpu_current());
   while(tmp) {
     if(tmp->event == ev.event) {
-      kmt->spin_unlock(splk);
       cret = tmp->handler(ev,context);
       return cret;
     }
     tmp = tmp->next;
   }  
+  //printf("44\n");
   //kmt->spin_lock(splk);
   //没有事件匹配，默认进行进程调度,调度当前线程的下一个
   do {
@@ -172,6 +127,7 @@ static Context *os_trap(Event ev, Context *context) {
     //printf(" current name = %s   %d \n",current->name,cpu_current());
     } while ((current->status != RUNNING));   //后期需要优化调度算法
   kmt->spin_unlock(splk);
+  //printf("55 %d  %s\n",cpu_current(),current->name);
   //printf("current name = %s \n",current->name);
   
   return current->context;
@@ -195,8 +151,7 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 }
 static Context *saved_context(Event ev, Context *context) {
 
-  //printf(">>>====  saved_context \n");
-  kmt->spin_lock(splk);
+  //printf("11 %d\n",cpu_current());
   current->context = context;   //更新线程的运行状态
   do {
     while( current == task_read->cur) {
@@ -215,7 +170,7 @@ static Context *saved_context(Event ev, Context *context) {
     //printf(" current name = %s   current->status  %d \n",current->name,current->status);
     } while ((current->status != RUNNING));   //后期需要优化调度算法
     kmt->spin_unlock(splk);
-    printf(">>>====  saved_context current name = %s\n",current->name);
+    //printf("22 %d  %s\n",cpu_current(),current->name);
     return current->context;
 }
 
