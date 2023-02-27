@@ -87,7 +87,7 @@ static Context *os_trap(Event ev, Context *context) {
       task_read = task_head;    //循环秩序链表中的数据
     }
     kmt->spin_unlock(splk);
-    //printf("aa %d  %s\n",cpu_current(),current->name);
+    printf("aa %d  %s\n",cpu_current(),current->name);
     return current->context;
   }
   else {
@@ -99,7 +99,7 @@ static Context *os_trap(Event ev, Context *context) {
   // }
   //printf("current name = %p\n",current);
   
-  //printf("33 %d \n",cpu_current());
+  printf("33 %d \n",cpu_current());
   while(tmp) {
     if(tmp->event == ev.event) {
       cret = tmp->handler(ev,context);
@@ -107,7 +107,7 @@ static Context *os_trap(Event ev, Context *context) {
     }
     tmp = tmp->next;
   }  
-  //printf("44\n");
+  printf("44\n");
   //kmt->spin_lock(splk);
   //没有事件匹配，默认进行进程调度,调度当前线程的下一个
   do {
@@ -127,7 +127,7 @@ static Context *os_trap(Event ev, Context *context) {
     //printf(" current name = %s   %d \n",current->name,cpu_current());
     } while ((current->status != RUNNING));   //后期需要优化调度算法
   kmt->spin_unlock(splk);
-  //printf("55 %d  %s\n",cpu_current(),current->name);
+  printf("55 %d  %s\n",cpu_current(),current->name);
   //printf("current name = %s \n",current->name);
   
   return current->context;
@@ -151,7 +151,7 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 }
 static Context *saved_context(Event ev, Context *context) {
 
-  //printf("11 %d\n",cpu_current());
+  printf("11 %d\n",cpu_current());
   current->context = context;   //更新线程的运行状态
   do {
     while( current == task_read->cur) {
@@ -170,7 +170,7 @@ static Context *saved_context(Event ev, Context *context) {
     //printf(" current name = %s   current->status  %d \n",current->name,current->status);
     } while ((current->status != RUNNING));   //后期需要优化调度算法
     kmt->spin_unlock(splk);
-    //printf("22 %d  %s\n",cpu_current(),current->name);
+    printf("22 %d  %s\n",cpu_current(),current->name);
     return current->context;
 }
 

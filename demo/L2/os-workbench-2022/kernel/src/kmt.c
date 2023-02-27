@@ -83,7 +83,7 @@ static void kmt_spin_lock(spinlock_t *lk) {
 
     //printf(">>>=== 222 acq = %d....\n",acq);
     if(acq) {
-        printf("aa %d\n",cpu_current());
+        //printf("aa %d\n",cpu_current());
         //printf("enqueue......current->name %s\n",current->name);
         yield(); // 阻塞时切换
     }    
@@ -94,7 +94,7 @@ static void kmt_spin_unlock(spinlock_t *lk) {
     if(lk->waitlist_head != NULL) {
         Task *task = dequeue(lk);
         task->status = RUNNING;
-        printf("bb %d\n",cpu_current());
+        //printf("bb %d\n",cpu_current());
         //printf("deq %s\n",task->name);
     }
     else if(lk->locked < lk->lock_num)
@@ -161,9 +161,9 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
 
 static void producer(void *arg) {
   while(1) {
-    printf("11 %d\n",cpu_current());
-    kmt_sem_signal(semlk);
-    printf("22 %d\n",cpu_current());
+    //printf("11 %d\n",cpu_current());
+    //kmt_sem_signal(semlk);
+    //printf("22 %d\n",cpu_current());
     //printf("(");
     for (int volatile i = 0; i < 100000; i++) ;
   }
