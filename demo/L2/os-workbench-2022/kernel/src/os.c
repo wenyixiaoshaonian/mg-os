@@ -77,8 +77,9 @@ static Context *os_trap(Event ev, Context *context) {
   Context * cret;
   irq_handle *tmp = ihandle_head;
   //printf("os_trap start....  event = %d\n",ev);
-  //printf("33\n");
+  printf("7 %d\n",cpu_current());
   kmt->spin_lock(splk);
+  printf("8 %d\n",cpu_current());
   //printf(" current  = %p   %d\n",current,cpu_current());
   if(!current) {
     current = task_read->cur;     //从主线程进入，无需更新主进程的状态
@@ -87,31 +88,28 @@ static Context *os_trap(Event ev, Context *context) {
       task_read = task_head;    //循环秩序链表中的数据
     }
     kmt->spin_unlock(splk);
-    printf("aa %d  %s\n",cpu_current(),current->name);
+    printf("ba %d  %s\n",cpu_current(),current->name);
     return current->context;
   }
   else {
     current->context = context;   //更新线程的运行状态
   }
-  // task_read = task_read->next;
-  // if (!task_read) {
-  //   task_read = task_head;    //循环秩序链表中的数据
-  // }
-  //printf("current name = %p\n",current);
   
   printf("33 %d \n",cpu_current());
   while(tmp) {
     if(tmp->event == ev.event) {
+      printf("99 %d \n",ev.event);
       cret = tmp->handler(ev,context);
+      kmt->spin_unlock(splk);
       return cret;
     }
     tmp = tmp->next;
   }  
   printf("44\n");
-  //kmt->spin_lock(splk);
   //没有事件匹配，默认进行进程调度,调度当前线程的下一个
   do {
     while( current == task_read->cur) {
+      printf("sd\n");
       task_read = task_read->next;
       if (!task_read) {
       task_read = task_head;    //循环秩序链表中的数据
@@ -123,7 +121,7 @@ static Context *os_trap(Event ev, Context *context) {
     if (!task_read) {
       task_read = task_head;    //循环秩序链表中的数据
     }
-
+    printf("ab\n");
     //printf(" current name = %s   %d \n",current->name,cpu_current());
     } while ((current->status != RUNNING));   //后期需要优化调度算法
   kmt->spin_unlock(splk);
@@ -169,7 +167,6 @@ static Context *saved_context(Event ev, Context *context) {
 
     //printf(" current name = %s   current->status  %d \n",current->name,current->status);
     } while ((current->status != RUNNING));   //后期需要优化调度算法
-    kmt->spin_unlock(splk);
     printf("22 %d  %s\n",cpu_current(),current->name);
     return current->context;
 }

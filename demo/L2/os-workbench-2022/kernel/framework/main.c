@@ -5,7 +5,8 @@ int main() {
   ioe_init();
   cte_init(os->trap);
   os->init();
-  printf(">>>===os_init end\n");
+  
+  printf(">>>===os_init end  %d \n",cpu_count());
   
   mpe_init(os->run);
   return 1;

@@ -83,7 +83,7 @@ static void kmt_spin_lock(spinlock_t *lk) {
 
     //printf(">>>=== 222 acq = %d....\n",acq);
     if(acq) {
-        //printf("aa %d\n",cpu_current());
+        printf("aa %d\n",cpu_current());
         //printf("enqueue......current->name %s\n",current->name);
         yield(); // 阻塞时切换
     }    
