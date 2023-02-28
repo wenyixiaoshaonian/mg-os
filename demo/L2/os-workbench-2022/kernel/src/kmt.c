@@ -77,7 +77,6 @@ static void kmt_spin_init(spinlock_t *lk, const char *name) {
     lk->waitlist_head = NULL;
 }
 static void kmt_spin_lock(spinlock_t *lk) {
-lock:
     int acq = 0;
     spin_lock(&lk->lock);
     //printf("23 %d\n",cpu_current());
@@ -97,7 +96,6 @@ lock:
     //printf("34 %d\n",cpu_current());
     if(acq) {
         yield(); // 阻塞时切换
-        //goto lock;
     }
         
 
@@ -111,11 +109,6 @@ unlock:
     if(lk->waitlist_read != NULL) {
         Task *task = dequeue(lk);
         task->status = RUNNING;
-        //printf("bb %s\n",task->name);
-        //printf("deq %s\n",task->name);
-        spin_unlock(&lk->lock);
-        //yield();
-        //goto unlock;
     }
     else if(lk->locked >= lk->lock_num) {
         //printf("u45 %d  %d\n",cpu_current(),lk->locked);
