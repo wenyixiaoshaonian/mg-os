@@ -29,9 +29,9 @@ void enqueue(spinlock_t *lk,Task *cur) {
         lk->wait_list->next = task_cur;
         if(!lk->waitlist_read) {
             lk->waitlist_read = task_cur;
-            printf(" 22 enqueue   %p \n",lk->waitlist_read);
+            //printf(" 22 enqueue   %p \n",lk->waitlist_read);
         }
-        printf(" enqueue   %p \n",lk->waitlist_read);
+        //printf(" enqueue   %p \n",lk->waitlist_read);
         //printf(">>>=== waitlist_head->next = %p....\n",lk->waitlist_head->next);
     }
     //printf("3\n");
@@ -42,7 +42,7 @@ Task *dequeue(spinlock_t *lk) {
     Task_List *task_cur = lk->waitlist_read;
     Task *ret = task_cur->cur;
     lk->waitlist_read = lk->waitlist_read->next;
-    printf("dequeue   %p \n",lk->waitlist_read);
+    //printf("dequeue   %p \n",lk->waitlist_read);
     // pmm->free(task_cur); 
     return ret;
 }
@@ -93,14 +93,20 @@ static void kmt_spin_lock(spinlock_t *lk) {
         lk->locked--;
         
     }
-    printf("34 %d\n",cpu_current());
-    spin_unlock(&lk->lock);
+    //printf("34 %d\n",cpu_current());
     //printf("45 %d\n",cpu_current());
     if(acq) {
+        acq = 0;
         //printf("enqueue......current->name %s\n",current->name);
         printf("56 %d\n",cpu_current());
+        spin_unlock(&lk->lock);
+        lk->locked++;
         yield(); // 阻塞时切换
-    }    
+        printf("78 %d\n",cpu_current());
+    }
+    else 
+        spin_unlock(&lk->lock);
+    printf("88 %d\n",cpu_current());
 }
 
 static void kmt_spin_unlock(spinlock_t *lk) {
@@ -108,12 +114,12 @@ static void kmt_spin_unlock(spinlock_t *lk) {
     if(lk->waitlist_read != NULL) {
         Task *task = dequeue(lk);
         task->status = RUNNING;
-        printf("bb %d\n",cpu_current());
+        printf("bb %s\n",task->name);
         //printf("deq %s\n",task->name);
     }
     else if(lk->locked < lk->lock_num)
         lk->locked++;
-    printf("cc lk->locked %d\n",lk->locked);
+    //printf("cc lk->locked %d\n",lk->locked);
     spin_unlock(&lk->lock);
     //printf(">>>=== 111 lk->locked = %d....\n",lk->locked);
 }

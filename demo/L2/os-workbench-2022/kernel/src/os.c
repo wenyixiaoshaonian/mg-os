@@ -76,9 +76,10 @@ static Context *os_trap(Event ev, Context *context) {
   Context * cret;
   irq_handle *tmp = ihandle_head;
   printf("7 %d\n",cpu_current());
-  kmt->spin_lock(splk);
-  printf("8 %d\n",cpu_current());
+  // kmt->spin_lock(splk);
+  // printf("8 %d\n",cpu_current());
   if(!current) {
+    kmt->spin_lock(splk);
     current = task_read->cur;     //从主线程进入
     current->context = context;   //更新线程的运行状态
     task_read = task_read->next;
@@ -93,7 +94,7 @@ static Context *os_trap(Event ev, Context *context) {
   else {
     current->context = context;   //更新线程的运行状态
   }
-  
+  kmt->spin_lock(splk);
   printf("44 %d \n",cpu_current());
   while(tmp) {
     if(tmp->event == ev.event) {
