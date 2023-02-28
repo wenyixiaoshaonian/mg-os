@@ -2,8 +2,6 @@
 
 #define MAXBLOCK 16384   //16*1024
 
-
-extern spinlock_p *slock;
 extern Task_List *task_head;
 extern Task_List *task_read;
 extern spinlock_t *splk;
@@ -66,68 +64,67 @@ static void os_run() {
   for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
-//  stress_test();
+  //stress_test();
   iset(true);
   while (1) {
-    ;
+    for (int volatile i = 0; i < 100000; i++) ;
+    //printf("k %d\n",cpu_current());
   }
 }
 
 static Context *os_trap(Event ev, Context *context) {
   Context * cret;
   irq_handle *tmp = ihandle_head;
-  //printf("os_trap start....  event = %d\n",ev);
   printf("7 %d\n",cpu_current());
   kmt->spin_lock(splk);
   printf("8 %d\n",cpu_current());
-  //printf(" current  = %p   %d\n",current,cpu_current());
   if(!current) {
-    current = task_read->cur;     //从主线程进入，无需更新主进程的状态
+    current = task_read->cur;     //从主线程进入
+    current->context = context;   //更新线程的运行状态
     task_read = task_read->next;
     if (!task_read) {
       task_read = task_head;    //循环秩序链表中的数据
     }
     kmt->spin_unlock(splk);
-    printf("ba %d  %s\n",cpu_current(),current->name);
+    printf("33 %d \n",cpu_current());
+    //printf("ba %d  %s\n",cpu_current(),current->name);
     return current->context;
   }
   else {
     current->context = context;   //更新线程的运行状态
   }
   
-  printf("33 %d \n",cpu_current());
+  printf("44 %d \n",cpu_current());
   while(tmp) {
     if(tmp->event == ev.event) {
-      printf("99 %d \n",ev.event);
+      //printf("99 %d \n",ev.event);
       cret = tmp->handler(ev,context);
       kmt->spin_unlock(splk);
       return cret;
     }
     tmp = tmp->next;
   }  
-  printf("44\n");
+  printf("55\n");
   //没有事件匹配，默认进行进程调度,调度当前线程的下一个
   do {
-    while( current == task_read->cur) {
-      printf("sd\n");
-      task_read = task_read->next;
-      if (!task_read) {
-      task_read = task_head;    //循环秩序链表中的数据
-      }
-    }
+    // while( current == task_read->cur) {
+    //   //printf("sd\n");
+    //   task_read = task_read->next;
+    //   if (!task_read) {
+    //   task_read = task_head;    //循环秩序链表中的数据
+    //   }
+    // }
     current = task_read->cur;
 
     task_read = task_read->next;
     if (!task_read) {
       task_read = task_head;    //循环秩序链表中的数据
     }
-    printf("ab\n");
+    //printf("ab  %d \n",cpu_current());
     //printf(" current name = %s   %d \n",current->name,cpu_current());
     } while ((current->status != RUNNING));   //后期需要优化调度算法
   kmt->spin_unlock(splk);
-  printf("55 %d  %s\n",cpu_current(),current->name);
-  //printf("current name = %s \n",current->name);
-  
+  printf("66 %d  %s\n",cpu_current(),current->name);
   return current->context;
 }
   
@@ -171,7 +168,6 @@ static Context *saved_context(Event ev, Context *context) {
     return current->context;
 }
 
-// extern spinlock_p *slock;
 static void os_init() {
   pmm->init();
   kmt->init();

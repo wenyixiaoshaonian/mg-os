@@ -24,10 +24,11 @@ void spin_init(spinlock_p *lk) {
   *lk = 0;
 }
 void spin_lock(spinlock_p *lk) {
+//  printf("pzz  %d\n",*lk);
   while (1) {
     intptr_t value = atomic_xchg(lk, 1);
     if (value == 0) {
-      break;
+      return;
     }
   }
 }
@@ -37,36 +38,37 @@ void spin_unlock(spinlock_p *lk) {
 
 h_block* find_block(size_t size) {
   h_block* heap_block = NULL;
-  bool i = ienabled();
+//  printf("p11  %d\n",cpu_current());
+  //spin_lock(slock);
   if(!pre) {
+//    printf("p33  %d\n",cpu_current());
+    //spin_unlock(slock);
     return NULL;
   }
   heap_block = head;
-  iset(false);
-  spin_lock(slock);
+  
   while(heap_block) {
     if(heap_block->size == size && heap_block->status == FREE) {
       // printf("find the memory at %p...\n",heap_block);
       heap_block->status = USE;
-      spin_unlock(slock);
-      iset(true);
+      //spin_unlock(slock);
+      //iset(true);
+//      printf("p44  %d\n",cpu_current());
       return heap_block;
     }
     // printf("memory at %p...status = %d\n",heap_block,heap_block->status);
     heap_block = heap_block->next;
   }
-  spin_unlock(slock);
-  if (i)
-    iset(true);
+  //spin_unlock(slock);
   // printf("can not find the memory !!!\n");
+//  printf("p55  %d\n",cpu_current());
   return NULL;
 }
 
 h_block* create_block(size_t size) {
   h_block* heap_block = NULL;
-  bool i = ienabled();
-  iset(false);
-  spin_lock(slock);
+  //spin_lock(slock);
+//  printf("p66  %d\n",cpu_current());
   if(used_len + HEADSIZE + size < len) {
     heap_block = heap.start + used_len;
     used_len += HEADSIZE + size;
@@ -74,8 +76,9 @@ h_block* create_block(size_t size) {
   }
   else {
     printf("there is not enough memory...\n");
-    spin_unlock(slock);
-    iset(true);
+    //spin_unlock(slock);
+    //iset(true);
+ //   printf("p77  %d\n",cpu_current());
     return NULL;
   }
   heap_block->size = size;
@@ -87,26 +90,27 @@ h_block* create_block(size_t size) {
     pre->next = heap_block;
   pre = heap_block;
   // printf(">>== %d   %p  block->use_flag %d\n",cpu_current(),heap_block->adr,heap_block->use_flag);
-  spin_unlock(slock);
-  if (i)
-    iset(true);
+  //spin_unlock(slock);
+  //if (i)
+    //iset(true);
+//  printf("p88  %d\n",cpu_current());
   return heap_block;
 }
 
 bool free_block(h_block* block) {
   bool i = ienabled();
-  iset(false);
-  spin_lock(slock);
+  //iset(false);
+  //spin_lock(slock);
   if(block->status == FREE || block->use_flag != 0x55aa) {
     // printf(">>== %d  kfree failed.....%p  block->status = %d  block->use_flag %d\n",cpu_current(),block->adr,block->status,block->use_flag);
-    spin_unlock(slock);
-    iset(true);
+    //spin_unlock(slock);
+    //iset(true);
     return false;
   }
   block->status = FREE;
-  spin_unlock(slock);
-  if (i)
-    iset(true);
+  //spin_unlock(slock);
+  //if (i)
+    //iset(true);
   return true;
 }
 
@@ -116,17 +120,25 @@ h_block* break_block() {
 }
 
 void *kalloc(size_t size) {
+  spin_lock(slock);
+  //printf("p1 \n");
   h_block* heap_block = find_block(size);
   if (heap_block) {
+    //printf("p2 \n");
+    spin_unlock(slock);
     return heap_block->adr;
   }
   else {
+    //printf("p3 \n");
     heap_block = create_block(size);
+    //printf("p4  \n");
     if (heap_block) {
+      spin_unlock(slock);
       return heap_block->adr;
     }
   }
   printf("kalloc failed.....\n");
+  spin_unlock(slock);
   return NULL;
 }
 
@@ -148,9 +160,12 @@ void kfree(void *ptr) {
 static void pmm_init() {
   uintptr_t pmsize = ((uintptr_t)heap.end - (uintptr_t)heap.start);
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
-  spin_init(slock);
   head = heap.start;
   len = heap.end - heap.start;
+  spin_init(slock);
+  slock = kalloc(sizeof(spinlock_p));
+  spin_init(slock);
+  printf("pmm slock %p\n",slock);
 }
 
 MODULE_DEF(pmm) = {

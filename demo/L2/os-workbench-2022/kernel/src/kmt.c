@@ -14,24 +14,35 @@ spinlock_t *splk = NULL;
 sem_t *semlk = NULL;
 
 void enqueue(spinlock_t *lk,Task *cur) {
+    //printf("1\n");
     Task_List *task_cur = (task_t *)pmm->alloc(sizeof(Task_List));
+    //printf("2\n");
     //printf(">>>=== enqueue task_cur = %p....\n",task_cur);
     task_cur->cur = cur;
     task_cur->next = NULL;
     if(!lk->waitlist_head) {
         lk->waitlist_head = task_cur;
+        lk->waitlist_read = task_cur;
+        //lk->waitlist_read = task_cur;
         //printf(">>>=== waitlist_head = %p....\n",lk->waitlist_head);
-
+    } else {
+        lk->wait_list->next = task_cur;
+        if(!lk->waitlist_read) {
+            lk->waitlist_read = task_cur;
+            printf(" 22 enqueue   %p \n",lk->waitlist_read);
+        }
+        printf(" enqueue   %p \n",lk->waitlist_read);
+        //printf(">>>=== waitlist_head->next = %p....\n",lk->waitlist_head->next);
     }
+    //printf("3\n");
     lk->wait_list = task_cur;
-    lk->wait_list = lk->wait_list->next;
 }
 
 Task *dequeue(spinlock_t *lk) {
-    Task_List *task_cur = lk->waitlist_head;
+    Task_List *task_cur = lk->waitlist_read;
     Task *ret = task_cur->cur;
-    lk->waitlist_head = lk->waitlist_head->next;
-    //printf(">>>=== dequeue task_cur = %p....\n",task_cur);
+    lk->waitlist_read = lk->waitlist_read->next;
+    printf("dequeue   %p \n",lk->waitlist_read);
     // pmm->free(task_cur); 
     return ret;
 }
@@ -70,36 +81,39 @@ static void kmt_spin_init(spinlock_t *lk, const char *name) {
 static void kmt_spin_lock(spinlock_t *lk) {
     int acq = 0;
     spin_lock(&lk->lock);
+    //printf("23 %d\n",cpu_current());
     if(lk->locked <= 0)  {
+        printf("223 \n");
         current->status = WAITTING;
         enqueue(lk, current);        //添加到等待队列
         acq = 1;
+        //printf("ad %d\n",cpu_current());
     } 
     else {
         lk->locked--;
         
     }
+    printf("34 %d\n",cpu_current());
     spin_unlock(&lk->lock);
-
-    //printf(">>>=== 222 acq = %d....\n",acq);
+    //printf("45 %d\n",cpu_current());
     if(acq) {
-        printf("aa %d\n",cpu_current());
         //printf("enqueue......current->name %s\n",current->name);
+        printf("56 %d\n",cpu_current());
         yield(); // 阻塞时切换
     }    
 }
 
 static void kmt_spin_unlock(spinlock_t *lk) {
     spin_lock(&lk->lock);
-    if(lk->waitlist_head != NULL) {
+    if(lk->waitlist_read != NULL) {
         Task *task = dequeue(lk);
         task->status = RUNNING;
-        //printf("bb %d\n",cpu_current());
+        printf("bb %d\n",cpu_current());
         //printf("deq %s\n",task->name);
     }
     else if(lk->locked < lk->lock_num)
         lk->locked++;
-
+    printf("cc lk->locked %d\n",lk->locked);
     spin_unlock(&lk->lock);
     //printf(">>>=== 111 lk->locked = %d....\n",lk->locked);
 }
@@ -187,6 +201,9 @@ static void kmt_init() {
     semlk->slock = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
     kmt_spin_init(splk,"spin lock");
     kmt_sem_init(semlk,"sem lock",5);
+
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "main", NULL, NULL);
 
     kmt_create(pmm->alloc(sizeof(task_t)),
               "thread-1", producer, NULL);
