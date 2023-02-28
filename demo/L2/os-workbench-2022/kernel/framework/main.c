@@ -7,7 +7,7 @@ int main() {
   os->init();
   
   printf(">>>===os_init end  %d \n",cpu_count());
-  
+  iset(true);
   mpe_init(os->run);
   return 1;
 }

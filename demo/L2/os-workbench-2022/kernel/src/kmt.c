@@ -54,8 +54,6 @@ static void spin_lock(int *lock) {
     while (1) {
     intptr_t value = atomic_xchg(lock, 1);
         if (value == 0) {
-            //if (i)
-            //    iset(true);
             return;
         } 
     }
@@ -83,7 +81,7 @@ static void kmt_spin_lock(spinlock_t *lk) {
     spin_lock(&lk->lock);
     //printf("23 %d\n",cpu_current());
     if(lk->locked <= 0)  {
-        printf("223 \n");
+        //printf("223 %d\n",cpu_current());
         current->status = WAITTING;
         enqueue(lk, current);        //添加到等待队列
         acq = 1;
@@ -91,30 +89,33 @@ static void kmt_spin_lock(spinlock_t *lk) {
     } 
     else {
         lk->locked--;
+        // printf("aaa %d  %d\n",*lk,cpu_current());
         
     }
     //printf("34 %d\n",cpu_current());
-    //printf("45 %d\n",cpu_current());
     if(acq) {
         acq = 0;
         //printf("enqueue......current->name %s\n",current->name);
-        printf("56 %d\n",cpu_current());
+        //printf("56 %d\n",cpu_current());
+        //lk->locked++;
         spin_unlock(&lk->lock);
-        lk->locked++;
+        //printf("56 %d\n",lk->lock);
         yield(); // 阻塞时切换
-        printf("78 %d\n",cpu_current());
+        //printf("78 %d\n",cpu_current());
     }
     else 
         spin_unlock(&lk->lock);
-    printf("88 %d\n",cpu_current());
+    //printf("88 %d\n",cpu_current());
 }
 
 static void kmt_spin_unlock(spinlock_t *lk) {
+    //printf("u23 %d\n",cpu_current());
     spin_lock(&lk->lock);
+    //printf("u45 %d\n",cpu_current());
     if(lk->waitlist_read != NULL) {
         Task *task = dequeue(lk);
         task->status = RUNNING;
-        printf("bb %s\n",task->name);
+        //printf("bb %s\n",task->name);
         //printf("deq %s\n",task->name);
     }
     else if(lk->locked < lk->lock_num)
@@ -182,9 +183,9 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
 static void producer(void *arg) {
   while(1) {
     //printf("11 %d\n",cpu_current());
-    //kmt_sem_signal(semlk);
+    kmt_sem_signal(semlk);
     //printf("22 %d\n",cpu_current());
-    //printf("(");
+    printf("(");
     for (int volatile i = 0; i < 100000; i++) ;
   }
   
@@ -192,10 +193,10 @@ static void producer(void *arg) {
 
 static void consumer(void *arg) {
   while(1) {
-    printf("33 %d\n",cpu_current());
+    //printf("33 %d\n",cpu_current());
     kmt_sem_wait(semlk);
-    printf("44 %d\n",cpu_current());
-    //printf(")");
+    //printf("44 %d\n",cpu_current());
+    printf(")");
     for (int volatile i = 0; i < 100000; i++) ;
   }
 }
@@ -214,11 +215,11 @@ static void kmt_init() {
     kmt_create(pmm->alloc(sizeof(task_t)),
               "thread-1", producer, NULL);
     kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-2", producer, NULL);
+              "thread-2", consumer, NULL);
     kmt_create(pmm->alloc(sizeof(task_t)),
               "thread-3", producer, NULL);
     kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-4", producer, NULL);
+              "thread-4", consumer, NULL);
 
   // kmt_create(pmm->alloc(sizeof(task_t)),
   //             "thread-5", consumer, NULL);
