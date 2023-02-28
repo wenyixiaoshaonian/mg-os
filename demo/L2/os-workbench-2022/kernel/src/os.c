@@ -79,13 +79,16 @@ static Context *os_trap(Event ev, Context *context) {
   // kmt->spin_lock(splk);
   // printf("8 %d\n",cpu_current());
   if(!current) {
+    printf("77 %d \n",cpu_current());
     kmt->spin_lock(splk);
     current = task_read->cur;     //从主线程进入
     current->context = context;   //更新线程的运行状态
+    
     task_read = task_read->next;
     if (!task_read) {
       task_read = task_head;    //循环秩序链表中的数据
     }
+    printf("99 %d \n",cpu_current());
     kmt->spin_unlock(splk);
     printf("33 %d \n",cpu_current());
     //printf("ba %d  %s\n",cpu_current(),current->name);
@@ -94,6 +97,7 @@ static Context *os_trap(Event ev, Context *context) {
   else {
     current->context = context;   //更新线程的运行状态
   }
+  printf("11 %d \n",cpu_current());
   kmt->spin_lock(splk);
   printf("44 %d \n",cpu_current());
   while(tmp) {
