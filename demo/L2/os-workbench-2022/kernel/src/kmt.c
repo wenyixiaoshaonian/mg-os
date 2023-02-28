@@ -77,6 +77,7 @@ static void kmt_spin_init(spinlock_t *lk, const char *name) {
     lk->waitlist_head = NULL;
 }
 static void kmt_spin_lock(spinlock_t *lk) {
+lock:
     int acq = 0;
     spin_lock(&lk->lock);
     //printf("23 %d\n",cpu_current());
@@ -92,23 +93,18 @@ static void kmt_spin_lock(spinlock_t *lk) {
         // printf("aaa %d  %d\n",*lk,cpu_current());
         
     }
+    spin_unlock(&lk->lock);
     //printf("34 %d\n",cpu_current());
     if(acq) {
-        acq = 0;
-        //printf("enqueue......current->name %s\n",current->name);
-        //printf("56 %d\n",cpu_current());
-        //lk->locked++;
-        spin_unlock(&lk->lock);
-        //printf("56 %d\n",lk->lock);
         yield(); // 阻塞时切换
-        //printf("78 %d\n",cpu_current());
+        //goto lock;
     }
-    else 
-        spin_unlock(&lk->lock);
-    //printf("88 %d\n",cpu_current());
+        
+
 }
 
 static void kmt_spin_unlock(spinlock_t *lk) {
+unlock:
     //printf("u23 %d\n",cpu_current());
     spin_lock(&lk->lock);
     //printf("u45 %d\n",cpu_current());
@@ -117,12 +113,20 @@ static void kmt_spin_unlock(spinlock_t *lk) {
         task->status = RUNNING;
         //printf("bb %s\n",task->name);
         //printf("deq %s\n",task->name);
+        spin_unlock(&lk->lock);
+        //yield();
+        //goto unlock;
     }
-    else if(lk->locked < lk->lock_num)
+    else if(lk->locked >= lk->lock_num) {
+        //printf("u45 %d  %d\n",cpu_current(),lk->locked);
+        spin_unlock(&lk->lock);
+        yield();
+        goto unlock;
+    }
+    else
         lk->locked++;
-    //printf("cc lk->locked %d\n",lk->locked);
+    
     spin_unlock(&lk->lock);
-    //printf(">>>=== 111 lk->locked = %d....\n",lk->locked);
 }
 
 /*---------------------------------------sem-------------------------------------------------------*/
@@ -183,8 +187,10 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
 static void producer(void *arg) {
   while(1) {
     //printf("11 %d\n",cpu_current());
+    //printf("%d ",semlk->slock->locked);
     kmt_sem_signal(semlk);
     //printf("22 %d\n",cpu_current());
+    //printf("%d",semlk->slock->locked);
     printf("(");
     for (int volatile i = 0; i < 100000; i++) ;
   }
@@ -193,9 +199,8 @@ static void producer(void *arg) {
 
 static void consumer(void *arg) {
   while(1) {
-    //printf("33 %d\n",cpu_current());
     kmt_sem_wait(semlk);
-    //printf("44 %d\n",cpu_current());
+    //printf("%d",semlk->slock->locked);
     printf(")");
     for (int volatile i = 0; i < 100000; i++) ;
   }
