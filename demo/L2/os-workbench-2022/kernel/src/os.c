@@ -178,8 +178,8 @@ static void os_init() {
   printf("pmm init finished\n");
   kmt->init();
   printf("kmt init finished\n");
-  // dev->init();
-  // printf("dev init finished\n");
+  dev->init();
+  printf("dev init finished\n");
   os->on_irq(100, EVENT_YIELD, saved_context);
 }
 

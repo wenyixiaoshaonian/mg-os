@@ -114,9 +114,9 @@ unlock:
     }
     else if(lk->locked >= lk->lock_num) {
         printf("u56 %d  %d\n",cpu_current(),lk->locked);
-        spin_unlock(&lk->lock);
-        yield();
-        goto unlock;
+        // spin_unlock(&lk->lock);
+        // yield();
+        // goto unlock;
     }
     else
         lk->locked++;
