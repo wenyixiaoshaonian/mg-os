@@ -4,7 +4,7 @@
 
 extern Task_List *task_head;
 extern Task_List *task_read;
-extern spinlock_t *splk;
+extern spinlock_t splk;
 #define MAX_CPU 9
 
 Task *currents[MAX_CPU];
@@ -76,11 +76,11 @@ static Context *os_trap(Event ev, Context *context) {
   Context * cret;
   irq_handle *tmp = ihandle_head;
   //printf("7 %d\n",cpu_current());
-  // kmt->spin_lock(splk);
+  // kmt->spin_lock(&splk);
   // printf("8 %d\n",cpu_current());
   if(!current) {
     //printf("77 %d \n",cpu_current());
-    kmt->spin_lock(splk);
+    kmt->spin_lock(&splk);
     current = task_read->cur;
     current->context = context;   //更新线程的运行状态
     
@@ -89,7 +89,7 @@ static Context *os_trap(Event ev, Context *context) {
       task_read = task_head;    //循环秩序链表中的数据
     }
     //printf("88 %d %s\n",cpu_current(),current->name);
-    kmt->spin_unlock(splk);
+    kmt->spin_unlock(&splk);
     //printf("33 %d \n",cpu_current());
     //printf("ba %d  %s\n",cpu_current(),current->name);
     return current->context;
@@ -97,11 +97,11 @@ static Context *os_trap(Event ev, Context *context) {
   else {
     current->context = context;   //更新线程的运行状态
   }
-  kmt->spin_lock(splk);
+  kmt->spin_lock(&splk);
   while(tmp) {
     if(tmp->event == ev.event) {
       cret = tmp->handler(ev,context);
-      kmt->spin_unlock(splk);
+      kmt->spin_unlock(&splk);
       return cret;
     }
     tmp = tmp->next;
@@ -125,7 +125,7 @@ static Context *os_trap(Event ev, Context *context) {
     //printf("ab  %d \n",cpu_current());
     //printf(" current name = %s   %d \n",current->name,cpu_current());
     } while ((current->status != RUNNING));   //后期需要优化调度算法
-  kmt->spin_unlock(splk);
+  kmt->spin_unlock(&splk);
   //printf("100 %d %s\n",cpu_current(),current->name);
   return current->context;
 }
@@ -174,10 +174,14 @@ static Context *saved_context(Event ev, Context *context) {
 
 static void os_init() {
   pmm->init();
+  printf("pmm init finished\n");
   kmt->init();
-
+  printf("kmt init finished\n");
+  dev->init();
+  printf("dev init finished\n");
   os->on_irq(100, EVENT_YIELD, saved_context);
 }
+
 MODULE_DEF(os) = {
   .init = os_init,
   .run  = os_run,

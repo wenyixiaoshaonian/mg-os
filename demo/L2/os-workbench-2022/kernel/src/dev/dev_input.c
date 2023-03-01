@@ -94,13 +94,13 @@ static int input_init(device_t *dev) {
   input_t *in = dev->ptr;
   *in = (input_t) {};
   in->events = pmm->alloc(sizeof(in->events[0]) * NEVENTS);
-
   kmt->spin_init(&in->lock, "/dev/input lock");
   kmt->sem_init(&in->event_sem, "events in queue", 0);
   kmt->sem_init(&sem_kbdirq, "keyboard-interrupt", 0);
-
+  //printf("input_init finished\n");
   os->on_irq(0, EVENT_IRQ_IODEV, input_notify);
   os->on_irq(0, EVENT_IRQ_TIMER, input_notify);
+  printf("input_init finished\n");
   return 0;
 }
 

@@ -38,6 +38,7 @@ int fb_init(device_t *dev) {
   };
   kmt->sem_init(&fb_sem, dev->name, 1);
   font_load(fb, term_font);
+  printf("fb_init finished\n");
   return 0;
 }
 

@@ -91,7 +91,9 @@ static void tty_render(tty_t *tty) {
   struct character *ch = tty->buf;
   uint8_t *d = tty->dirty;
   struct sprite *sp = tty->sp_buf;
+  printf("666\n");
   kmt->sem_wait(&tty->lock);
+  printf("777\n");
   for (int y = 0; y < tty->lines; y++) {
     for (int x = 0; x < tty->columns; x++) {
       if (*d) {
@@ -109,6 +111,7 @@ static void tty_render(tty_t *tty) {
   int nsp = sp - tty->sp_buf;
   tty->fbdev->ops->write(tty->fbdev, SPRITE_BRK, tty->sp_buf, nsp * sizeof(*sp));
   // clear dirty marks
+  printf("888\n");
   memset(tty->dirty, 0, tty->size * sizeof(tty->dirty[0]));
   kmt->sem_signal(&tty->lock);
 }
@@ -194,7 +197,22 @@ static void welcome(device_t *dev) {
       case '7': *p = 200; break;
     }
   }
+  printf("tty_init start 111 \n");
   dev->ops->write(dev, 0, welcome_text, sizeof(welcome_text) - 1);
+  printf("tty_init start 222 \n");
+}
+
+static void tty_reader(void *arg) {
+  device_t *tty = dev->lookup(arg);
+  char cmd[128], resp[128], ps[16];
+  snprintf(ps, 16, "(%s) $ ", arg);
+  while (1) {
+    tty->ops->write(tty, 0, ps, strlen(ps));
+    int nread = tty->ops->read(tty, 0, cmd, sizeof(cmd) - 1);
+    cmd[nread] = '\0';
+    sprintf(resp, "tty reader task: got %d character(s).\n", strlen(cmd));
+    tty->ops->write(tty, 0, resp, strlen(resp));
+  }
 }
 
 static int tty_init(device_t *ttydev) {
@@ -220,6 +238,10 @@ static int tty_init(device_t *ttydev) {
   kmt->sem_init(&tty->lock, "tty lock", 1);
   kmt->sem_init(&tty->cooked, "tty cooked lines", 0);
   welcome(ttydev);
+  printf("tty_init finished\n");
+
+  kmt->create(pmm->alloc(sizeof(task_t)), "tty_reader", tty_reader, "tty1");
+  kmt->create(pmm->alloc(sizeof(task_t)), "tty_reader", tty_reader, "tty2");
   return 0;
 }
 
@@ -246,12 +268,17 @@ static int tty_read(device_t *dev, int offset, void *buf, int count) {
 
 static int tty_write(device_t *dev, int offset, const void *buf, int count) {
   tty_t *tty = dev->ptr;
+  printf("111\n");
   kmt->sem_wait(&tty->lock);
+  printf("222\n");
   for (int i = 0; i < count; i++) {
     tty_putc(tty, ((const char *)buf)[i]);
   }
+  printf("333\n");
   kmt->sem_signal(&tty->lock);
+  printf("444\n");
   tty_render(tty);
+  printf("555\n");
   return count;
 }
 

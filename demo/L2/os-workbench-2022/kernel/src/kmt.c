@@ -10,8 +10,8 @@ extern Task *currents[MAX_CPU];
 Task_List *task_head = NULL;
 Task_List *task_pre = NULL;
 Task_List *task_read = NULL;
-spinlock_t *splk = NULL;
-sem_t *semlk = NULL;
+spinlock_t splk;
+sem_t semlk;
 
 void enqueue(spinlock_t *lk,Task *cur) {
     //printf("1\n");
@@ -105,7 +105,7 @@ static void kmt_spin_unlock(spinlock_t *lk) {
 unlock:
     //printf("u23 %d\n",cpu_current());
     spin_lock(&lk->lock);
-    //printf("u45 %d\n",cpu_current());
+    
     if(lk->waitlist_read != NULL) {
         Task *task = dequeue(lk);
         task->status = RUNNING;
@@ -120,32 +120,35 @@ unlock:
         lk->locked++;
     
     spin_unlock(&lk->lock);
+    //printf("u45 %d\n",cpu_current());
 }
 
 /*---------------------------------------sem-------------------------------------------------------*/
 static void kmt_sem_init(sem_t *sem, const char *name, int value) {
     sem->name = name;
     //sem_t->count = value;
-    sem->slock->lock = 0;             //解锁状态
-    sem->slock->locked = 0;           //初始没有可用资源
-    sem->slock->lock_num = value;     //当作信号量使用
-    sem->slock->wait_list = NULL;
-    sem->slock->waitlist_head = NULL;
+    sem->slock.lock = 0;             //解锁状态
+    sem->slock.locked = 1;           //初始没有可用资源
+    sem->slock.lock_num = value;     //当作信号量使用
+    sem->slock.wait_list = NULL;
+    sem->slock.waitlist_head = NULL;
 }
 
 static void kmt_sem_wait(sem_t *sem) {
     bool i = ienabled();
     iset(false);
-    kmt_spin_lock(sem->slock);
-    //printf(" %d ",sem->slock->locked);
+    printf(">>==33 %d \n",sem->slock.locked);
+    kmt_spin_lock(&sem->slock);
+    printf(">>==44 %d \n",sem->slock.locked);
     if (i)
        iset(true); 
 }
 static void kmt_sem_signal(sem_t *sem) {
     bool i = ienabled();
     iset(false);
-    kmt_spin_unlock(sem->slock);
-    //printf(" %d ",sem->slock->locked);
+    printf(" >>==11  %d \n",sem->slock.locked);
+    kmt_spin_unlock(&sem->slock);
+    printf(" >>==22  %d \n",sem->slock.locked);
     if (i)
        iset(true); 
 }
@@ -181,8 +184,7 @@ static void producer(void *arg) {
   while(1) {
     //printf("11 %d\n",cpu_current());
     //printf("%d ",semlk->slock->locked);
-    kmt_sem_signal(semlk);
-    //printf("22 %d\n",cpu_current());
+    kmt_sem_signal(&semlk);
     //printf("%d",semlk->slock->locked);
     printf("(");
     for (int volatile i = 0; i < 100000; i++) ;
@@ -192,7 +194,7 @@ static void producer(void *arg) {
 
 static void consumer(void *arg) {
   while(1) {
-    kmt_sem_wait(semlk);
+    kmt_sem_wait(&semlk);
     //printf("%d",semlk->slock->locked);
     printf(")");
     for (int volatile i = 0; i < 100000; i++) ;
@@ -201,23 +203,20 @@ static void consumer(void *arg) {
 
 static void kmt_init() {
     //锁的初始化
-    splk = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
-    semlk = (sem_t *)pmm->alloc(sizeof(sem_t));
-    semlk->slock = (spinlock_t *)pmm->alloc(sizeof(spinlock_t));
-    kmt_spin_init(splk,"spin lock");
-    kmt_sem_init(semlk,"sem lock",5);
+    kmt_spin_init(&splk,"spin lock");
+    kmt_sem_init(&semlk,"sem lock",5);
 
     kmt_create(pmm->alloc(sizeof(task_t)),
               "main", NULL, NULL);
 
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-1", producer, NULL);
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-2", consumer, NULL);
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-3", producer, NULL);
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-4", consumer, NULL);
+    // kmt_create(pmm->alloc(sizeof(task_t)),
+    //           "thread-1", producer, NULL);
+    // kmt_create(pmm->alloc(sizeof(task_t)),
+    //           "thread-2", consumer, NULL);
+    // kmt_create(pmm->alloc(sizeof(task_t)),
+    //           "thread-3", producer, NULL);
+    // kmt_create(pmm->alloc(sizeof(task_t)),
+    //           "thread-4", consumer, NULL);
 
   // kmt_create(pmm->alloc(sizeof(task_t)),
   //             "thread-5", consumer, NULL);

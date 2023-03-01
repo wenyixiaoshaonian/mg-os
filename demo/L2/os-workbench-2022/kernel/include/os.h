@@ -14,5 +14,5 @@ struct spinlock{
 
 struct semaphore {
   const char *name;
-  struct spinlock *slock;
+  struct spinlock slock;
 };
