@@ -128,8 +128,11 @@ static void kmt_sem_init(sem_t *sem, const char *name, int value) {
     sem->name = name;
     //sem_t->count = value;
     sem->slock.lock = 0;             //解锁状态
-    sem->slock.locked = 1;           //初始没有可用资源
-    sem->slock.lock_num = value;     //当作信号量使用
+    sem->slock.locked = value;       //1时用作互斥量 解锁状态 0时作为信号量
+    if(value == 1)
+        sem->slock.lock_num = value;
+    else
+    sem->slock.lock_num = 5;       //最多允许5个信号
     sem->slock.wait_list = NULL;
     sem->slock.waitlist_head = NULL;
 }
@@ -137,18 +140,18 @@ static void kmt_sem_init(sem_t *sem, const char *name, int value) {
 static void kmt_sem_wait(sem_t *sem) {
     bool i = ienabled();
     iset(false);
-    printf(">>==33 %d \n",sem->slock.locked);
+    //printf(">>==33 %d \n",sem->slock.locked);
     kmt_spin_lock(&sem->slock);
-    printf(">>==44 %d \n",sem->slock.locked);
+    //printf(">>==44 %d \n",sem->slock.locked);
     if (i)
        iset(true); 
 }
 static void kmt_sem_signal(sem_t *sem) {
     bool i = ienabled();
     iset(false);
-    printf(" >>==11  %d \n",sem->slock.locked);
+    //printf(" >>==11  %d \n",sem->slock.locked);
     kmt_spin_unlock(&sem->slock);
-    printf(" >>==22  %d \n",sem->slock.locked);
+    //printf(" >>==22  %d \n",sem->slock.locked);
     if (i)
        iset(true); 
 }
@@ -204,7 +207,7 @@ static void consumer(void *arg) {
 static void kmt_init() {
     //锁的初始化
     kmt_spin_init(&splk,"spin lock");
-    kmt_sem_init(&semlk,"sem lock",5);
+    kmt_sem_init(&semlk,"sem lock",0);
 
     kmt_create(pmm->alloc(sizeof(task_t)),
               "main", NULL, NULL);
