@@ -91,9 +91,7 @@ static void tty_render(tty_t *tty) {
   struct character *ch = tty->buf;
   uint8_t *d = tty->dirty;
   struct sprite *sp = tty->sp_buf;
-  printf("666\n");
   kmt->sem_wait(&tty->lock);
-  printf("777\n");
   for (int y = 0; y < tty->lines; y++) {
     for (int x = 0; x < tty->columns; x++) {
       if (*d) {
@@ -111,7 +109,6 @@ static void tty_render(tty_t *tty) {
   int nsp = sp - tty->sp_buf;
   tty->fbdev->ops->write(tty->fbdev, SPRITE_BRK, tty->sp_buf, nsp * sizeof(*sp));
   // clear dirty marks
-  printf("888\n");
   memset(tty->dirty, 0, tty->size * sizeof(tty->dirty[0]));
   kmt->sem_signal(&tty->lock);
 }
@@ -268,17 +265,12 @@ static int tty_read(device_t *dev, int offset, void *buf, int count) {
 
 static int tty_write(device_t *dev, int offset, const void *buf, int count) {
   tty_t *tty = dev->ptr;
-  printf("111\n");
   kmt->sem_wait(&tty->lock);
-  printf("222\n");
   for (int i = 0; i < count; i++) {
     tty_putc(tty, ((const char *)buf)[i]);
   }
-  printf("333\n");
   kmt->sem_signal(&tty->lock);
-  printf("444\n");
   tty_render(tty);
-  printf("555\n");
   return count;
 }
 

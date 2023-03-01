@@ -103,24 +103,26 @@ static void kmt_spin_lock(spinlock_t *lk) {
 
 static void kmt_spin_unlock(spinlock_t *lk) {
 unlock:
-    //printf("u23 %d\n",cpu_current());
+    
     spin_lock(&lk->lock);
+    printf("u23 %d %d\n",cpu_current(),lk->locked);
     
     if(lk->waitlist_read != NULL) {
         Task *task = dequeue(lk);
         task->status = RUNNING;
+        lk->locked++;
     }
     else if(lk->locked >= lk->lock_num) {
-        //printf("u45 %d  %d\n",cpu_current(),lk->locked);
+        printf("u56 %d  %d\n",cpu_current(),lk->locked);
         spin_unlock(&lk->lock);
         yield();
         goto unlock;
     }
     else
         lk->locked++;
-    
+    printf("u45 %d %d\n",cpu_current(),lk->locked);
     spin_unlock(&lk->lock);
-    //printf("u45 %d\n",cpu_current());
+    printf("u45 %d %d\n",cpu_current(),lk->locked);
 }
 
 /*---------------------------------------sem-------------------------------------------------------*/
@@ -187,9 +189,9 @@ static void producer(void *arg) {
   while(1) {
     //printf("11 %d\n",cpu_current());
     //printf("%d ",semlk->slock->locked);
-    kmt_sem_signal(&semlk);
+    //kmt_sem_signal(&semlk);
     //printf("%d",semlk->slock->locked);
-    printf("(");
+    //printf("(");
     for (int volatile i = 0; i < 100000; i++) ;
   }
   
@@ -197,9 +199,10 @@ static void producer(void *arg) {
 
 static void consumer(void *arg) {
   while(1) {
-    kmt_sem_wait(&semlk);
+    //printf("22 %d\n",cpu_current());
+    //kmt_sem_wait(&semlk);
     //printf("%d",semlk->slock->locked);
-    printf(")");
+    //printf(")");
     for (int volatile i = 0; i < 100000; i++) ;
   }
 }
@@ -212,14 +215,14 @@ static void kmt_init() {
     kmt_create(pmm->alloc(sizeof(task_t)),
               "main", NULL, NULL);
 
-    // kmt_create(pmm->alloc(sizeof(task_t)),
-    //           "thread-1", producer, NULL);
-    // kmt_create(pmm->alloc(sizeof(task_t)),
-    //           "thread-2", consumer, NULL);
-    // kmt_create(pmm->alloc(sizeof(task_t)),
-    //           "thread-3", producer, NULL);
-    // kmt_create(pmm->alloc(sizeof(task_t)),
-    //           "thread-4", consumer, NULL);
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "thread-1", producer, NULL);
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "thread-2", consumer, NULL);
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "thread-3", producer, NULL);
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "thread-4", consumer, NULL);
 
   // kmt_create(pmm->alloc(sizeof(task_t)),
   //             "thread-5", consumer, NULL);

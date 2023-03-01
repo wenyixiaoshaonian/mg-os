@@ -65,7 +65,8 @@ static void os_run() {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
   //stress_test();
-  
+  for (int volatile i = 0; i < 10000; i++) ;
+  iset(true);
   while (1) {
     for (int volatile i = 0; i < 100000; i++) ;
     //printf("k %d\n",cpu_current());
@@ -126,7 +127,7 @@ static Context *os_trap(Event ev, Context *context) {
     //printf(" current name = %s   %d \n",current->name,cpu_current());
     } while ((current->status != RUNNING));   //后期需要优化调度算法
   kmt->spin_unlock(&splk);
-  //printf("100 %d %s\n",cpu_current(),current->name);
+  printf("100 %d %s\n",cpu_current(),current->name);
   return current->context;
 }
   
@@ -168,7 +169,7 @@ static Context *saved_context(Event ev, Context *context) {
 
     //printf(" current name = %s   current->status  %d \n",current->name,current->status);
     } while ((current->status != RUNNING));   //后期需要优化调度算法
-    //printf("22 %d  %s\n",cpu_current(),current->name);
+    printf("22 %d  %s\n",cpu_current(),current->name);
     return current->context;
 }
 
@@ -177,8 +178,8 @@ static void os_init() {
   printf("pmm init finished\n");
   kmt->init();
   printf("kmt init finished\n");
-  dev->init();
-  printf("dev init finished\n");
+  // dev->init();
+  // printf("dev init finished\n");
   os->on_irq(100, EVENT_YIELD, saved_context);
 }
 
