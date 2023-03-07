@@ -82,8 +82,8 @@ static void kmt_spin_lock(spinlock_t *lk) {
         spin_lock(&lk->lock);
         return;
     }
-    // bool i = ienabled();
-    // iset(false);
+    bool i = ienabled();
+    iset(false);
     //在用户程序中，使用睡眠-唤醒的方式
     spin_lock(&lk->lock);
     //printf("23 %d %d\n",cpu_current(),lk->locked);
@@ -91,6 +91,7 @@ static void kmt_spin_lock(spinlock_t *lk) {
         //printf("223 %d\n",cpu_current());
         current->status = WAITTING;
         enqueue(lk, current);        //添加到等待队列
+        printf("enq fin %d\n",cpu_current());
         acq = 1;
         
     } 
@@ -99,10 +100,10 @@ static void kmt_spin_lock(spinlock_t *lk) {
     }
     spin_unlock(&lk->lock);
     if(acq) {
-        // if (i) {
-        //     iset(true);
-        // }
-        //printf("yield %d\n",cpu_current());
+        printf("yield %d\n",cpu_current());
+        if (i) {
+            iset(true);
+        }
         yield(); // 阻塞时切换
     }
 
@@ -124,15 +125,15 @@ unlock:
         Task *task = dequeue(lk);
         task->status = RUNNING;
         //lk->locked++;
-        //printf("deq %d\n",cpu_current());
+        //printf("deq fin %d\n",cpu_current());
         spin_unlock(&lk->lock);
         return;
     }
     else if(lk->locked >= lk->lock_num) {
         //printf("u56 %d  %d\n",cpu_current(),lk->locked);
-        spin_unlock(&lk->lock);
-        yield();
-        goto unlock;
+        // spin_unlock(&lk->lock);
+        // yield();
+        // goto unlock;
     }
     else
         lk->locked++;
@@ -156,22 +157,22 @@ static void kmt_sem_init(sem_t *sem, const char *name, int value) {
 }
 
 static void kmt_sem_wait(sem_t *sem) {
-    bool i = ienabled();
-    iset(false);
-    //printf(">>==33 %d \n",sem->slock.locked);
+    // bool i = ienabled();
+    // iset(false);
+    //printf(">>==33 %d \n",cpu_current());
     kmt_spin_lock(&sem->slock);
-    //printf(">>==44 %d \n",sem->slock.locked);
-    if (i) {
-        iset(true);
-    }
+    printf(">>==44 %d \n",cpu_current());
+    // if (i) {
+    //     iset(true);
+    // }
        
 }
 static void kmt_sem_signal(sem_t *sem) {
     bool i = ienabled();
     iset(false);
-    //printf(" >>==11  %d \n",sem->slock.locked);
+    //printf(" >>==11  %d \n",cpu_current());
     kmt_spin_unlock(&sem->slock);
-    //printf(" >>==22  %d \n",sem->slock.locked);
+    printf(" >>==55  %d \n",cpu_current());
     if (i) {
         iset(true);
     }

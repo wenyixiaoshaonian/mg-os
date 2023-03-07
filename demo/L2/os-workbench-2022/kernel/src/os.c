@@ -68,7 +68,7 @@ static void os_run() {
   iset(true);
   while (1) {
     for (int volatile i = 0; i < 10000000; i++) ;
-    //printf("k %d\n",cpu_current());
+    printf("k %d\n",cpu_current());
   }
 }
 
@@ -82,7 +82,8 @@ static Context *os_trap(Event ev, Context *context) {
     //printf("77 %d \n",cpu_current());
     kmt->spin_lock(&splk);
     current = task_read->cur;
-    current->context = context;   //更新线程的运行状态
+    if(current->name == "main")
+      current->context = context;   //主线程 更新线程的运行状态
     
     task_read = task_read->next;
     if (!task_read) {
@@ -97,8 +98,8 @@ static Context *os_trap(Event ev, Context *context) {
   kmt->spin_lock(&splk);
   while(tmp) {
     if(tmp->event == ev.event) {
-      cret = tmp->handler(ev,context);
       kmt->spin_unlock(&splk);
+      cret = tmp->handler(ev,context);
       return cret;
     }
     tmp = tmp->next;
@@ -113,7 +114,7 @@ static Context *os_trap(Event ev, Context *context) {
     }
     //printf("ab  %d \n",cpu_current());
   } while ((current->status != RUNNING));
-  //printf("1000 %d %s\n",cpu_current(),current->name);
+  printf("1000 %d %s\n",cpu_current(),current->name);
   kmt->spin_unlock(&splk);
   return current->context;
 }
@@ -136,26 +137,20 @@ static void os_on_irq(int seq, int event, handler_t handler) {
   return;
 }
 static Context *saved_context(Event ev, Context *context) {
-
   // printf("saved_context %d\n",cpu_current());
   //current->context = context;   //更新线程的运行状态
+  kmt->spin_lock(&splk);
   do {
-    // while( current == task_read->cur) {
-    //   task_read = task_read->next;
-    //   if (!task_read) {
-    //   task_read = task_head;    //循环秩序链表中的数据
-    //   }
-    // }
     current = task_read->cur;
 
     task_read = task_read->next;
     if (!task_read) {
       task_read = task_head;    //循环秩序链表中的数据
     }
-
     //printf(" current name = %s   current->status  %d \n",current->name,current->status);
-    } while ((current->status != RUNNING));   //后期需要优化调度算法
-    printf("yied %d  %s\n",cpu_current(),current->name);
+    } while ((current->status != RUNNING));
+    printf("111 yied %d  %s\n",cpu_current(),current->name);
+    kmt->spin_unlock(&splk);
     return current->context;
 }
 
