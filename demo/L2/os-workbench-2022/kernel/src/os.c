@@ -72,7 +72,7 @@ static void os_run() {
   printf(">>===111\n");
   while (1) {
     for (int volatile i = 0; i < 10000000; i++) ;
-    printf("%s  %d\n",current->name,cpu_current());
+    // printf("%s  %d\n",current->name,cpu_current());
   }
 }
 
@@ -114,6 +114,7 @@ static Context *os_trap(Event ev, Context *context) {
 
   while(tmp) {
     if(tmp->event == ev.event) {
+      printf("event = %d \n",ev.event);
       kmt->spin_unlock(&splk);
       cret = tmp->handler(ev,context);
       if(cret)
@@ -136,7 +137,7 @@ static Context *os_trap(Event ev, Context *context) {
     //printf("task_read - task_head  %d  %d\n",((task_read - task_head)/520) % cpu_count(), cpu_current());
   //} while (((task_read - task_head)/520) % cpu_count() != cpu_current());
   } while ((current->status != RUNNING) || ((current->call_status != CALLABLE)));
-  //printf("1000 %d %s\n",cpu_current(),current->name);
+  printf("1000 %d %s\n",cpu_current(),current->name);
   if(current->name != "main")
     current->call_status = UNCALLABLE;
   kmt->spin_unlock(&splk);
