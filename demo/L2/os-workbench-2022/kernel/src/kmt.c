@@ -248,14 +248,14 @@ static void kmt_init() {
     kmt_create(pmm->alloc(sizeof(task_t)),
               "main", NULL, NULL);
 
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-1", producer, NULL);
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-2", consumer, NULL);
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-3", producer, NULL);
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "thread-4", consumer, NULL);
+    // kmt_create(pmm->alloc(sizeof(task_t)),
+    //           "thread-1", producer, NULL);
+    // kmt_create(pmm->alloc(sizeof(task_t)),
+    //           "thread-2", consumer, NULL);
+    // kmt_create(pmm->alloc(sizeof(task_t)),
+    //           "thread-3", producer, NULL);
+    // kmt_create(pmm->alloc(sizeof(task_t)),
+    //           "thread-4", consumer, NULL);
 
 //   kmt_create(pmm->alloc(sizeof(task_t)),
 //               "thread-5", consumer, NULL);
