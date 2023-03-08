@@ -15,7 +15,7 @@ Task_List *task_pre = NULL;
 Task_List *task_read = NULL;
 spinlock_t splk;
 sem_t semlk;
-
+int flag_num = 0;
 void enqueue(spinlock_t *lk,Task *cur) {
     Task_List *task_cur = (task_t *)pmm->alloc(sizeof(Task_List));
     //printf(">>>=== enqueue task_cur = %p....\n",task_cur);
@@ -33,6 +33,7 @@ void enqueue(spinlock_t *lk,Task *cur) {
         }
         //printf(" enqueue   %p \n",lk->waitlist_read);
     }
+    flag_num++;
     lk->wait_list = task_cur;
 }
 
@@ -42,6 +43,7 @@ Task *dequeue(spinlock_t *lk) {
     lk->waitlist_read = lk->waitlist_read->next;
     //printf("dequeue   %p \n",lk->waitlist_read);
     // pmm->free(task_cur); 
+    flag_num--;
     return ret;
 }
 
@@ -85,8 +87,8 @@ static void kmt_spin_lock(spinlock_t *lk) {
         spin_lock(&lk->lock);
         return;
     }
-    bool i = ienabled();
-    iset(false);
+    // bool i = ienabled();
+    // iset(false);
     //在用户程序中，使用睡眠-唤醒的方式
     spin_lock(&lk->lock);
     //printf("23 %d %d\n",cpu_current(),lk->locked);
@@ -94,26 +96,23 @@ static void kmt_spin_lock(spinlock_t *lk) {
         //printf("223 %d\n",cpu_current());
         current->status = WAITTING;
         enqueue(lk, current);        //添加到等待队列
-        printf("enq fin %d\n",cpu_current());
+        //printf("flag_num %d\n",flag_num);
         acq = 1;
-        
     } 
     else {
         lk->locked--;
     }
     spin_unlock(&lk->lock);
     if(acq) {
-        printf("yield %d\n",cpu_current());
-        if (i) {
-            iset(true);
-        }
+        //printf("yield %d\n",cpu_current());
+        // if (i) {
+        //     iset(true);
+        // }
         yield(); // 阻塞时切换
     }
-
 }
 
 static void kmt_spin_unlock(spinlock_t *lk) {
-unlock:
     //在中断处理程序中，不能使用睡眠的方式，不能发生任务调度
     if (lk->irq_flag) {
         //printf("111 %d\n",cpu_current());
@@ -128,7 +127,7 @@ unlock:
         Task *task = dequeue(lk);
         task->status = RUNNING;
         //lk->locked++;
-        //printf("deq fin %d\n",cpu_current());
+        //printf("flag_num %d\n",flag_num);
         spin_unlock(&lk->lock);
         return;
     }
@@ -136,7 +135,7 @@ unlock:
         //printf("u56 %d  %d\n",cpu_current(),lk->locked);
         // spin_unlock(&lk->lock);
         // yield();
-        // goto unlock;
+        for (int volatile i = 0; i < 10000; i++) ;
     }
     else
         lk->locked++;
@@ -160,14 +159,14 @@ static void kmt_sem_init(sem_t *sem, const char *name, int value) {
 }
 
 static void kmt_sem_wait(sem_t *sem) {
-    // bool i = ienabled();
-    // iset(false);
+    bool i = ienabled();
+    iset(false);
     //printf(">>==33 %d \n",cpu_current());
     kmt_spin_lock(&sem->slock);
-    printf(">>==44 %d \n",cpu_current());
-    // if (i) {
-    //     iset(true);
-    // }
+    //printf(">>==44 %d \n",cpu_current());
+    if (i) {
+        iset(true);
+    }
        
 }
 static void kmt_sem_signal(sem_t *sem) {
@@ -175,7 +174,7 @@ static void kmt_sem_signal(sem_t *sem) {
     iset(false);
     //printf(" >>==11  %d \n",cpu_current());
     kmt_spin_unlock(&sem->slock);
-    printf(" >>==55  %d \n",cpu_current());
+    //printf(" >>==55  %d \n",cpu_current());
     if (i) {
         iset(true);
     }
@@ -217,18 +216,12 @@ void unlock() { atomic_xchg(&locked, 0); }
 
 static void producer(void *arg) {
   while(1) {
-    //printf("22 %d\n",cpu_current());
-    lock();
-    //printf("33 %d\n",cpu_current());
-    printf("%s  %d\n",current->name,cpu_current());
-    
-    //printf("%d ",semlk->slock->locked);
-    //printf("22 %d\n",semlk.slock.irq_flag);
-    //kmt_sem_signal(&semlk);
-    //printf("44 %d\n",cpu_current());
-    unlock();
-    
-    //printf("(");
+    //lock();
+    //printf("%s  %d\n",current->name,cpu_current());
+    kmt_sem_signal(&semlk);
+    //unlock();
+    //printf("%d ",semlk.slock.locked);
+     printf("(");
     for (int volatile i = 0; i < 10000; i++) ;
   }
   
@@ -236,18 +229,12 @@ static void producer(void *arg) {
 
 static void consumer(void *arg) {
   while(1) {
-    //printf("00 %d\n",cpu_current());
-    lock();
-    //printf("11 %d\n",cpu_current());
-    printf("%s  %d\n",current->name,cpu_current());
-    
-//    printf("22 %d\n",cpu_current());
-    //printf("11 %d\n",semlk.slock.irq_flag);
-    //kmt_sem_wait(&semlk);
-    //printf("55 %d\n",cpu_current());
-    unlock();
-    
-    //printf(")");
+    //lock();
+    //printf("%s  %d\n",current->name,cpu_current());
+    kmt_sem_wait(&semlk);
+    //unlock();
+    //printf("%d ",semlk.slock.locked);
+    printf(")");
     for (int volatile i = 0; i < 10000; i++) ;
   }
 }
@@ -258,8 +245,8 @@ static void kmt_init() {
     splk.irq_flag = 1;    //该互斥锁仅在中断使用 
     kmt_sem_init(&semlk,"sem lock",0);
 
-    // kmt_create(pmm->alloc(sizeof(task_t)),
-    //           "main", NULL, NULL);
+    kmt_create(pmm->alloc(sizeof(task_t)),
+              "main", NULL, NULL);
 
     kmt_create(pmm->alloc(sizeof(task_t)),
               "thread-1", producer, NULL);

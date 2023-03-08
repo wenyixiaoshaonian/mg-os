@@ -71,7 +71,7 @@ static void os_run() {
   iset(true);
   while (1) {
     for (int volatile i = 0; i < 10000000; i++) ;
-    printf("k %d\n",cpu_current());
+    // printf("%s  %d\n",current->name,cpu_current());
   }
 }
 
@@ -86,8 +86,8 @@ static Context *os_trap(Event ev, Context *context) {
     do{
     //printf("77 %d \n",cpu_current());
     current = task_read->cur;
-    // if(current->name == "main")
-    //   current->context = context;   //主线程 更新线程的运行状态
+    if(current->name == "main")
+      current->context = context;   //主线程 更新线程的运行状态
     
     task_read = task_read->next;
     if (!task_read) {
@@ -164,7 +164,7 @@ static Context *saved_context(Event ev, Context *context) {
     }
     //printf(" current name = %s   current->status  %d \n",current->name,current->status);
     } while ((current->status != RUNNING) || ((current->call_status != CALLABLE)));
-    printf("111 yied %d  %s\n",cpu_current(),current->name);
+    //printf("111 yied %d  %s\n",cpu_current(),current->name);
     current->call_status = UNCALLABLE;
     kmt->spin_unlock(&splk);
     return current->context;
