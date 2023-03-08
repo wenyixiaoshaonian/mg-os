@@ -51,6 +51,7 @@ Context *on_interrupt(Event ev, Context *ctx) {
   else          current->context = ctx;   //更新线程的运行状态
   do {
     current = current->next;
+    //printf("reads - task_head  %d \n",current - tasks);
   } while ((current - tasks) % cpu_count() != cpu_current());
   return current->context;
 }

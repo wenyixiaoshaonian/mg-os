@@ -13,6 +13,11 @@ enum os_status
   RUNNING = 1,
   WAITTING,
 };
+enum call_status
+{
+  CALLABLE = 1,
+  UNCALLABLE,
+};
 
 struct task_List{
     struct task *cur;
@@ -29,6 +34,7 @@ struct irq_h{
 struct task {
   struct {
     int status;
+    int call_status;
     const char *name;
     // struct task *next;
     void      (*entry)(void *);

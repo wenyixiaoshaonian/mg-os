@@ -7,6 +7,9 @@
 extern Task *currents[MAX_CPU];
 #define current currents[cpu_current()]
 
+extern Task_List *task_reads[MAX_CPU];
+#define reads task_reads[cpu_current()]
+
 Task_List *task_head = NULL;
 Task_List *task_pre = NULL;
 Task_List *task_read = NULL;
@@ -187,6 +190,7 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
     task->context = kcontext(stack, task->entry, arg);
     // task->next    = NULL;
     task->status  = RUNNING;
+    task->call_status   = CALLABLE;
 
     //将所有任务加入到一个全局链表中
     Task_List *task_cur = (task_t *)pmm->alloc(sizeof(Task_List));
@@ -195,6 +199,10 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
     if(!task_head) {
         task_head = task_cur;
         task_read = task_head;
+        task_reads[0] = task_head;
+        task_reads[1] = task_head;
+        task_reads[2] = task_head;
+        task_reads[3] = task_head;
     }
     else {
         task_pre->next = task_cur;
@@ -203,27 +211,44 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
     return 0;
 }
 
+int locked = 0;
+void lock()   { while (atomic_xchg(&locked, 1)); }
+void unlock() { atomic_xchg(&locked, 0); }
+
 static void producer(void *arg) {
   while(1) {
-    printf("11 %d\n",cpu_current());
+    //printf("22 %d\n",cpu_current());
+    lock();
+    //printf("33 %d\n",cpu_current());
+    printf("%s  %d\n",current->name,cpu_current());
+    
     //printf("%d ",semlk->slock->locked);
     //printf("22 %d\n",semlk.slock.irq_flag);
-    kmt_sem_signal(&semlk);
+    //kmt_sem_signal(&semlk);
+    //printf("44 %d\n",cpu_current());
+    unlock();
     
     //printf("(");
-    for (int volatile i = 0; i < 100000; i++) ;
+    for (int volatile i = 0; i < 10000; i++) ;
   }
   
   }
 
 static void consumer(void *arg) {
   while(1) {
-    printf("22 %d\n",cpu_current());
+    //printf("00 %d\n",cpu_current());
+    lock();
+    //printf("11 %d\n",cpu_current());
+    printf("%s  %d\n",current->name,cpu_current());
+    
+//    printf("22 %d\n",cpu_current());
     //printf("11 %d\n",semlk.slock.irq_flag);
-    kmt_sem_wait(&semlk);
+    //kmt_sem_wait(&semlk);
+    //printf("55 %d\n",cpu_current());
+    unlock();
     
     //printf(")");
-    for (int volatile i = 0; i < 100000; i++) ;
+    for (int volatile i = 0; i < 10000; i++) ;
   }
 }
 
@@ -233,8 +258,8 @@ static void kmt_init() {
     splk.irq_flag = 1;    //该互斥锁仅在中断使用 
     kmt_sem_init(&semlk,"sem lock",0);
 
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "main", NULL, NULL);
+    // kmt_create(pmm->alloc(sizeof(task_t)),
+    //           "main", NULL, NULL);
 
     kmt_create(pmm->alloc(sizeof(task_t)),
               "thread-1", producer, NULL);
@@ -245,14 +270,14 @@ static void kmt_init() {
     kmt_create(pmm->alloc(sizeof(task_t)),
               "thread-4", consumer, NULL);
 
-  // kmt_create(pmm->alloc(sizeof(task_t)),
-  //             "thread-5", consumer, NULL);
-  // kmt_create(pmm->alloc(sizeof(task_t)),
-  //             "thread-6", consumer, NULL);
-  // kmt_create(pmm->alloc(sizeof(task_t)),
-  //             "thread-7", consumer, NULL);
-  // kmt_create(pmm->alloc(sizeof(task_t)),
-  //             "thread-8", consumer, NULL);
+//   kmt_create(pmm->alloc(sizeof(task_t)),
+//               "thread-5", consumer, NULL);
+//   kmt_create(pmm->alloc(sizeof(task_t)),
+//               "thread-6", consumer, NULL);
+//   kmt_create(pmm->alloc(sizeof(task_t)),
+//               "thread-7", consumer, NULL);
+//   kmt_create(pmm->alloc(sizeof(task_t)),
+//               "thread-8", consumer, NULL);
   //printf(">>>====kmt create finished\n");
 }
 
