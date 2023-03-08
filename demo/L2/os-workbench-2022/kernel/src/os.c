@@ -69,6 +69,7 @@ static void os_run() {
   //stress_test();
   for (int volatile i = 0; i < 10000; i++) ;
   iset(true);
+  printf(">>===111\n");
   while (1) {
     for (int volatile i = 0; i < 10000000; i++) ;
     printf("%s  %d\n",current->name,cpu_current());
@@ -103,12 +104,13 @@ static Context *os_trap(Event ev, Context *context) {
     return current->context;
   }
   kmt->spin_lock(&splk);
+  current->context = context;   //更新线程的运行状态
   if(current->call_status == UNCALLABLE) {
-    current->context = context;   //更新线程的运行状态
     current->call_status = CALLABLE;
-  }
+    }
   else ;
-    // printf("call_status error %d\n", cpu_current());
+
+  // printf("call_status error %d\n", cpu_current());
 
   while(tmp) {
     if(tmp->event == ev.event) {
