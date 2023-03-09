@@ -245,9 +245,6 @@ static void kmt_init() {
     splk.irq_flag = 1;    //该互斥锁仅在中断使用 
     kmt_sem_init(&semlk,"sem lock",0);
 
-    kmt_create(pmm->alloc(sizeof(task_t)),
-              "main", NULL, NULL);
-
     // kmt_create(pmm->alloc(sizeof(task_t)),
     //           "thread-1", producer, NULL);
     // kmt_create(pmm->alloc(sizeof(task_t)),

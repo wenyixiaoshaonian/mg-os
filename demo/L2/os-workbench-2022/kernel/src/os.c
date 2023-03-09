@@ -67,39 +67,34 @@ static void os_run() {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
   //stress_test();
-  for (int volatile i = 0; i < 10000; i++) ;
   iset(true);
-  printf(">>===111\n");
   while (1) {
     for (int volatile i = 0; i < 10000000; i++) ;
-    // printf("%s  %d\n",current->name,cpu_current());
+    //printf("%s  %d\n",current->name,cpu_current());
   }
 }
 
 static Context *os_trap(Event ev, Context *context) {
   Context * cret;
+  task_t *task;
   irq_handle *tmp = ihandle_head;
-  // printf("ev %d  %d\n",ev,ihandle_head->event);
-  // kmt->spin_lock(&splk);
   // printf("8 %d\n",cpu_current());
-  if(!current) {
+  if(!current) {  
     kmt->spin_lock(&splk);
+    //先创建一个主线程，放入任务链表
+    task = pmm->alloc(sizeof(task_t));
+    kmt->create(task,
+               "main", NULL, NULL);
+    task->context = context;   //主线程 更新线程的运行状态
     do{
-    //printf("77 %d \n",cpu_current());
-    current = task_read->cur;
-    if(current->name == "main")
-      current->context = context;   //主线程 更新线程的运行状态
-    
-    task_read = task_read->next;
-    if (!task_read) {
-      task_read = task_head;    //循环秩序链表中的数据
-    }
-    // printf("task_read - task_head  %d  %d\n",((task_read - task_head)/520) % cpu_count(), cpu_current());
-    //} while (((task_read - task_head)/520) % cpu_count() != cpu_current());
+      current = task_read->cur;   
+      task_read = task_read->next;
+      if (!task_read) {
+        task_read = task_head;    //循环秩序链表中的数据
+      }
     } while ((current->status != RUNNING) || ((current->call_status != CALLABLE)));
-    //printf("88 %d  %s\n",cpu_current(),current->name);
-    if(current->name != "main")
-      current->call_status = UNCALLABLE;
+    printf("88 %d  %s\n",cpu_current(),current->name);
+    current->call_status = UNCALLABLE;
     kmt->spin_unlock(&splk);
     return current->context;
   }
@@ -108,13 +103,14 @@ static Context *os_trap(Event ev, Context *context) {
   if(current->call_status == UNCALLABLE) {
     current->call_status = CALLABLE;
     }
-  else ;
+  else 
+    printf("call_status error.....\n");
 
   // printf("call_status error %d\n", cpu_current());
 
   while(tmp) {
     if(tmp->event == ev.event) {
-      printf("event = %d \n",ev.event);
+      // printf("event = %d \n",ev.event);
       kmt->spin_unlock(&splk);
       cret = tmp->handler(ev,context);
       if(cret)
@@ -134,12 +130,9 @@ static Context *os_trap(Event ev, Context *context) {
     if (!task_read) {
       task_read = task_head;
     }
-    //printf("task_read - task_head  %d  %d\n",((task_read - task_head)/520) % cpu_count(), cpu_current());
-  //} while (((task_read - task_head)/520) % cpu_count() != cpu_current());
   } while ((current->status != RUNNING) || ((current->call_status != CALLABLE)));
-  printf("1000 %d %s\n",cpu_current(),current->name);
-  if(current->name != "main")
-    current->call_status = UNCALLABLE;
+  //printf("1000 %d %s\n",cpu_current(),current->name);
+  current->call_status = UNCALLABLE;
   kmt->spin_unlock(&splk);
   return current->context;
 }
@@ -163,7 +156,6 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 }
 static Context *saved_context(Event ev, Context *context) {
   // printf("saved_context %d\n",cpu_current());
-  //current->context = context;   //更新线程的运行状态
   kmt->spin_lock(&splk);
   do {
     current = task_read->cur;
@@ -172,10 +164,8 @@ static Context *saved_context(Event ev, Context *context) {
     if (!task_read) {
       task_read = task_head;    //循环秩序链表中的数据
     }
-    //printf(" current name = %s   current->status  %d \n",current->name,current->status);
     } while ((current->status != RUNNING) || ((current->call_status != CALLABLE)));
     //printf("111 yied %d  %s\n",cpu_current(),current->name);
-    if(current->name != "main")
     current->call_status = UNCALLABLE;
     kmt->spin_unlock(&splk);
     return current->context;
