@@ -237,8 +237,8 @@ static int tty_init(device_t *ttydev) {
   welcome(ttydev);
   printf("tty_init finished\n");
 
-  // kmt->create(pmm->alloc(sizeof(task_t)), "tty_reader", tty_reader, "tty1");
-  // kmt->create(pmm->alloc(sizeof(task_t)), "tty_reader", tty_reader, "tty2");
+  kmt->create(pmm->alloc(sizeof(task_t)), "tty_reader", tty_reader, "tty1");
+  kmt->create(pmm->alloc(sizeof(task_t)), "tty_reader", tty_reader, "tty2");
   return 0;
 }
 
