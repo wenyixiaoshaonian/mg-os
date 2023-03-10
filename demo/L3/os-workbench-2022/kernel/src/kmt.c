@@ -7,9 +7,6 @@
 extern Task *currents[MAX_CPU];
 #define current currents[cpu_current()]
 
-extern Task_List *task_reads[MAX_CPU];
-#define reads task_reads[cpu_current()]
-
 Task_List *task_head = NULL;
 Task_List *task_pre = NULL;
 Task_List *task_read = NULL;
@@ -31,7 +28,6 @@ void enqueue(spinlock_t *lk,Task *cur) {
             lk->waitlist_read = task_cur;
             //printf(" 22 enqueue   %p \n",lk->waitlist_read);
         }
-        //printf(" enqueue   %p \n",lk->waitlist_read);
     }
     flag_num++;
     lk->wait_list = task_cur;
@@ -41,16 +37,15 @@ Task *dequeue(spinlock_t *lk) {
     Task_List *task_cur = lk->waitlist_read;
     Task *ret = task_cur->cur;
     lk->waitlist_read = lk->waitlist_read->next;
-    //printf("dequeue   %p \n",lk->waitlist_read);
-    // pmm->free(task_cur); 
+    // printf("dequeue  ret %p \n",ret);
+    // //pmm->free(task_cur); 
+    // printf("dequeue  ret %p \n",ret);
     flag_num--;
     return ret;
 }
 
 /*---------------------------------------spin-------------------------------------------------------*/
 static void spin_lock(int *lock) {
-    //bool i = ienabled();
-    //iset(false);
     while (1) {
     intptr_t value = atomic_xchg(lock, 1);
         if (value == 0) {
@@ -60,11 +55,7 @@ static void spin_lock(int *lock) {
 }
 
 static void spin_unlock(int *lock) {
-    //bool i = ienabled();
-    //iset(false);
     atomic_xchg(lock, 0);
-    //if (i)
-    //    iset(true);
 }
 /*---------------------------------------metux-------------------------------------------------------*/
 
@@ -87,8 +78,6 @@ static void kmt_spin_lock(spinlock_t *lk) {
         spin_lock(&lk->lock);
         return;
     }
-    // bool i = ienabled();
-    // iset(false);
     //在用户程序中，使用睡眠-唤醒的方式
     spin_lock(&lk->lock);
     //printf("23 %d %d\n",cpu_current(),lk->locked);
@@ -104,10 +93,6 @@ static void kmt_spin_lock(spinlock_t *lk) {
     }
     spin_unlock(&lk->lock);
     if(acq) {
-        //printf("yield %d\n",cpu_current());
-        // if (i) {
-        //     iset(true);
-        // }
         yield(); // 阻塞时切换
     }
 }
@@ -126,15 +111,11 @@ static void kmt_spin_unlock(spinlock_t *lk) {
     if(lk->waitlist_read != NULL) {
         Task *task = dequeue(lk);
         task->status = RUNNING;
-        //lk->locked++;
         //printf("flag_num %d\n",flag_num);
         spin_unlock(&lk->lock);
         return;
     }
     else if(lk->locked >= lk->lock_num) {
-        //printf("u56 %d  %d\n",cpu_current(),lk->locked);
-        // spin_unlock(&lk->lock);
-        // yield();
         for (int volatile i = 0; i < 10000; i++) ;
     }
     else
@@ -198,10 +179,6 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
     if(!task_head) {
         task_head = task_cur;
         task_read = task_head;
-        task_reads[0] = task_head;
-        task_reads[1] = task_head;
-        task_reads[2] = task_head;
-        task_reads[3] = task_head;
     }
     else {
         task_pre->next = task_cur;

@@ -197,6 +197,18 @@ static void welcome(device_t *dev) {
   dev->ops->write(dev, 0, welcome_text, sizeof(welcome_text) - 1);
 }
 
+static void tty_reader(void *arg) {
+  device_t *tty = dev->lookup(arg);
+  char cmd[128], resp[128], ps[16];
+  snprintf(ps, 16, "(%s) $ ", arg);
+  while (1) {
+    tty->ops->write(tty, 0, ps, strlen(ps));
+    int nread = tty->ops->read(tty, 0, cmd, sizeof(cmd) - 1);
+    cmd[nread] = '\0';
+    sprintf(resp, "tty reader task: got %d character(s).\n", strlen(cmd));
+    tty->ops->write(tty, 0, resp, strlen(resp));
+  }
+}
 static int tty_init(device_t *ttydev) {
   tty_t *tty = ttydev->ptr;
   tty->fbdev = dev->lookup("fb");
@@ -220,6 +232,9 @@ static int tty_init(device_t *ttydev) {
   kmt->sem_init(&tty->lock, "tty lock", 1);
   kmt->sem_init(&tty->cooked, "tty cooked lines", 0);
   welcome(ttydev);
+
+  kmt->create(pmm->alloc(sizeof(task_t)), "tty_reader", tty_reader, "tty1");
+  kmt->create(pmm->alloc(sizeof(task_t)), "tty_reader", tty_reader, "tty2");
   return 0;
 }
 

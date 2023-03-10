@@ -4,7 +4,7 @@
 #include "initcode.inc"
 
 static void uproc_init() {
-
+    vme_init(pmm->alloc, pmm->free);
 }
 
 static int uproc_kputc(task_t *task, char ch) {

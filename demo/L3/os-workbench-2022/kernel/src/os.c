@@ -10,9 +10,6 @@ extern spinlock_t splk;
 Task *currents[MAX_CPU];
 #define current currents[cpu_current()]
 
-Task_List *task_reads[MAX_CPU];
-#define reads task_reads[cpu_current()]
-
 irq_handle *ihandle = NULL;
 irq_handle *ihandle_head = NULL;
 enum ops { OP_ALLOC = 0, OP_FREE };
