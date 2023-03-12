@@ -100,8 +100,10 @@ static Context *os_trap(Event ev, Context *context) {
   if(current->call_status == UNCALLABLE) {
     current->call_status = CALLABLE;
     }
-  else 
-    printf("call_status error.....\n");
+  else {
+    printf("call_status error..... %s\n",current->name);
+  }
+    
 
   // printf("call_status error %d\n", cpu_current());
 

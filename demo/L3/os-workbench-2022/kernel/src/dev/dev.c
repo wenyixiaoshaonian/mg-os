@@ -9,7 +9,7 @@
   _(4, sd_t,    "sda",      1, &sd_ops) \
 
 #define DEV_CNT(...) + 1
-device_t *devices[0 DEVICES(DEV_CNT)];
+device_t *devices[DEVICES(DEV_CNT)];
 
 static device_t *dev_lookup(const char *name) {
   for (int i = 0; i < LENGTH(devices); i++) 
@@ -40,6 +40,9 @@ static void dev_init() {
 
   DEVICES(INIT);
 
+  for (int i = 0; i < LENGTH(devices); i++) {
+    printf("devices[%d] name = %s\n",i,devices[i]->name);
+  }
   kmt->create(pmm->alloc(sizeof(task_t)), "input-task", dev_input_task, NULL);
   kmt->create(pmm->alloc(sizeof(task_t)), "tty-task",   dev_tty_task,   NULL);
 }
