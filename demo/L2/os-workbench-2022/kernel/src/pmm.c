@@ -1,8 +1,13 @@
 #include <pmm.h>
 
-void spin_init(spinlock_p *lk) {
+#define SPIN_INIT(lk) \
   *lk = 0;
-}
+
+// #define SPIN_LOCK(lk) \
+//   while (1) { \
+//     intptr_t value = atomic_xchg(lk, 1); \
+//     if (value == 0) return;}
+
 void spin_lock(spinlock_p *lk) {
   while (1) {
     intptr_t value = atomic_xchg(lk, 1);
@@ -125,7 +130,7 @@ static void pmm_init() {
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
   pmm_h.head = heap.start;
   pmm_h.len = heap.end - heap.start;
-  spin_init(&pmm_h.slock);
+  SPIN_INIT(&pmm_h.slock);
 }
 
 MODULE_DEF(pmm) = {
