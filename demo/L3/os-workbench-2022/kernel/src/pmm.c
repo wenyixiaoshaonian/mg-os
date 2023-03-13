@@ -1,6 +1,6 @@
 #include <common.h>
 
-spinlock_p *slock;
+spinlock_p slock;
 size_t len = 0;
 size_t used_len = 0;
 
@@ -120,12 +120,12 @@ h_block* break_block() {
 }
 
 void *kalloc(size_t size) {
-  spin_lock(slock);
+  spin_lock(&slock);
   //printf("p1 \n");
   h_block* heap_block = find_block(size);
   if (heap_block) {
     //printf("p2 \n");
-    spin_unlock(slock);
+    spin_unlock(&slock);
     return heap_block->adr;
   }
   else {
@@ -133,12 +133,12 @@ void *kalloc(size_t size) {
     heap_block = create_block(size);
     //printf("p4  \n");
     if (heap_block) {
-      spin_unlock(slock);
+      spin_unlock(&slock);
       return heap_block->adr;
     }
   }
   printf("kalloc failed.....\n");
-  spin_unlock(slock);
+  spin_unlock(&slock);
   return NULL;
 }
 
@@ -162,10 +162,10 @@ static void pmm_init() {
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
   head = heap.start;
   len = heap.end - heap.start;
-  spin_init(slock);
-  slock = kalloc(sizeof(spinlock_p));
-  spin_init(slock);
-  printf("pmm slock %p\n",slock);
+  // spin_init(slock);
+  // slock = kalloc(sizeof(spinlock_p));
+  spin_init(&slock);
+  printf("pmm slock %d\n",slock);
 }
 
 MODULE_DEF(pmm) = {

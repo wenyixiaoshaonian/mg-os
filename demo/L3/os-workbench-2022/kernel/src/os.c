@@ -47,7 +47,7 @@ static void stress_test() {
           printf("malloc adr is illegality!!!!!!\n");
           return;
         }
-      // printf("%d malloc adr successful  adr = %p  size = %d\n",cpu_current(),op.addr,op.sz);
+      printf("%d malloc adr successful  adr = %p  size = %d\n",cpu_current(),op.addr,op.sz);
       
         pmm->free(op.addr); 
         break;
@@ -63,7 +63,7 @@ static void os_run() {
   for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
-  //stress_test();
+  stress_test();
   iset(true);
   while (1) {
     for (int volatile i = 0; i < 10000000; i++) ;
@@ -175,8 +175,8 @@ static void os_init() {
   printf("pmm init finished\n");
   kmt->init();
   printf("kmt init finished\n");
-  dev->init();
-  printf("dev init finished\n");
+  // dev->init();
+  // printf("dev init finished\n");
   os->on_irq(100, EVENT_YIELD, saved_context);
 }
 
