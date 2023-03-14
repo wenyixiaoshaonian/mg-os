@@ -1,25 +1,7 @@
+#include <common.h>
 #include <pmm.h>
 
-#define SPIN_INIT(lk) \
-  *lk = 0;
-
-// #define SPIN_LOCK(lk) \
-//   while (1) { \
-//     intptr_t value = atomic_xchg(lk, 1); \
-//     if (value == 0) return;}
-
-void spin_lock(spinlock_p *lk) {
-  while (1) {
-    intptr_t value = atomic_xchg(lk, 1);
-    if (value == 0) {
-      return;
-    }
-  }
-}
-void spin_unlock(spinlock_p *lk) {
-  atomic_xchg(lk, 0);
-}
-
+pmm_body pmm_h;
 h_block* find_block(size_t size) {
   h_block* heap_block = NULL;
   if(!pmm_h.pre) {
@@ -81,10 +63,10 @@ h_block* break_block() {
 void *kalloc(size_t size) {
   bool i = ienabled();
   iset(false);
-  spin_lock(&pmm_h.slock);
+  SPIN_LOCK(&pmm_h.slock);
   h_block* heap_block = find_block(size);
   if (heap_block) {
-    spin_unlock(&pmm_h.slock);
+    SPIN_UNLOCK(&pmm_h.slock);
     if (i)
       iset(true);
     return heap_block->adr;
@@ -92,14 +74,14 @@ void *kalloc(size_t size) {
   else {
     heap_block = create_block(size);
     if (heap_block) {
-      spin_unlock(&pmm_h.slock);
+      SPIN_UNLOCK(&pmm_h.slock);
       if (i)
         iset(true);
       return heap_block->adr;
     }
   }
   printf("kalloc failed.....\n");
-  spin_unlock(&pmm_h.slock);
+  SPIN_UNLOCK(&pmm_h.slock);
   if (i)
     iset(true);
   return NULL;

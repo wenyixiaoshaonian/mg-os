@@ -1,21 +1,14 @@
+#include <common.h>
+#include <kmt.h>
 #include <os.h>
 
-#define STACK_SIZE 8192
+Task_List *task_head;
+Task_List *task_pre;
+Task_List *task_read;
 
-#define MAX_CPU 8
-
-extern Task *currents[MAX_CPU];
-#define current currents[cpu_current()]
-
-extern Task_List *task_reads[MAX_CPU];
-#define reads task_reads[cpu_current()]
-
-Task_List *task_head = NULL;
-Task_List *task_pre = NULL;
-Task_List *task_read = NULL;
 spinlock_t splk;
 sem_t semlk;
-int flag_num = 0;
+
 void enqueue(spinlock_t *lk,Task *cur) {
     Task_List *task_cur = (task_t *)pmm->alloc(sizeof(Task_List));
     //printf(">>>=== enqueue task_cur = %p....\n",task_cur);
@@ -33,7 +26,6 @@ void enqueue(spinlock_t *lk,Task *cur) {
         }
         //printf(" enqueue   %p \n",lk->waitlist_read);
     }
-    flag_num++;
     lk->wait_list = task_cur;
 }
 
@@ -43,7 +35,6 @@ Task *dequeue(spinlock_t *lk) {
     lk->waitlist_read = lk->waitlist_read->next;
     //printf("dequeue   %p \n",lk->waitlist_read);
     // pmm->free(task_cur); 
-    flag_num--;
     return ret;
 }
 
@@ -96,7 +87,6 @@ static void kmt_spin_lock(spinlock_t *lk) {
         //printf("223 %d\n",cpu_current());
         current->status = WAITTING;
         enqueue(lk, current);        //添加到等待队列
-        //printf("flag_num %d\n",flag_num);
         acq = 1;
     } 
     else {
@@ -127,7 +117,6 @@ static void kmt_spin_unlock(spinlock_t *lk) {
         Task *task = dequeue(lk);
         task->status = RUNNING;
         //lk->locked++;
-        //printf("flag_num %d\n",flag_num);
         spin_unlock(&lk->lock);
         return;
     }
@@ -198,10 +187,6 @@ static int  kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
     if(!task_head) {
         task_head = task_cur;
         task_read = task_head;
-        task_reads[0] = task_head;
-        task_reads[1] = task_head;
-        task_reads[2] = task_head;
-        task_reads[3] = task_head;
     }
     else {
         task_pre->next = task_cur;
