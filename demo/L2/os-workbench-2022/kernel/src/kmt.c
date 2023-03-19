@@ -33,8 +33,8 @@ Task *dequeue(spinlock_t *lk) {
     Task_List *task_cur = lk->waitlist_read;
     Task *ret = task_cur->cur;
     lk->waitlist_read = lk->waitlist_read->next;
-    //printf("dequeue   %p \n",lk->waitlist_read);
-    // pmm->free(task_cur); 
+    //printf("dequeue   %p \n",ret);
+    //pmm->free(task_cur); 
     return ret;
 }
 

@@ -47,11 +47,14 @@ h_block* create_block(size_t size) {
 
 bool free_block(h_block* block) {
   bool i = ienabled();
+  SPIN_LOCK(&pmm_h.slock);
   if(block->status == FREE || block->use_flag != 0x55aa) {
-    // printf(">>== %d  kfree failed.....%p  block->status = %d  block->use_flag %d\n",cpu_current(),block->adr,block->status,block->use_flag);
+    printf(">>== %d  kfree failed.....%p  block->status = %d  block->use_flag %d\n",cpu_current(),block->adr,block->status,block->use_flag);
+    SPIN_UNLOCK(&pmm_h.slock);
     return false;
   }
   block->status = FREE;
+  SPIN_UNLOCK(&pmm_h.slock);
   return true;
 }
 
