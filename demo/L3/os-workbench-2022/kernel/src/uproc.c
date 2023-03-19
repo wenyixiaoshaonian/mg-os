@@ -1,4 +1,4 @@
-#include <os.h>
+#include <common.h>
 #include <syscall.h>
 
 #include "initcode.inc"

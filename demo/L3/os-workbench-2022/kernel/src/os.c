@@ -1,24 +1,11 @@
 #include <common.h>
-
-#define MAXBLOCK 16384   //16*1024
-
-extern Task_List *task_head;
-extern Task_List *task_read;
-extern spinlock_t splk;
-#define MAX_CPU 9
+#include <kmt.h>
+#include <os.h>
 
 Task *currents[MAX_CPU];
-#define current currents[cpu_current()]
 
-irq_handle *ihandle = NULL;
-irq_handle *ihandle_head = NULL;
-enum ops { OP_ALLOC = 0, OP_FREE };
-struct malloc_op {
-  enum ops type;
-  size_t sz; 
-  void *addr; 
-   ;
-};
+irq_handle *ihandle;
+irq_handle *ihandle_head;
 
 void random_op(struct malloc_op* op) {
   // op->type = rand() % 2;
@@ -63,8 +50,9 @@ static void os_run() {
   for (const char *s = "Hello World from CPU #*\n\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
-  stress_test();
+  //stress_test();
   iset(true);
+  
   while (1) {
     for (int volatile i = 0; i < 10000000; i++) ;
     //printf("%s  %d\n",current->name,cpu_current());
@@ -100,10 +88,8 @@ static Context *os_trap(Event ev, Context *context) {
   if(current->call_status == UNCALLABLE) {
     current->call_status = CALLABLE;
     }
-  else {
-    printf("call_status error..... %s\n",current->name);
-  }
-    
+  else 
+    printf("call_status error.....\n");
 
   // printf("call_status error %d\n", cpu_current());
 
@@ -175,8 +161,8 @@ static void os_init() {
   printf("pmm init finished\n");
   kmt->init();
   printf("kmt init finished\n");
-  // dev->init();
-  // printf("dev init finished\n");
+  dev->init();
+  printf("dev init finished\n");
   os->on_irq(100, EVENT_YIELD, saved_context);
 }
 

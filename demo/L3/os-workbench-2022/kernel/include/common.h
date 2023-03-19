@@ -3,10 +3,27 @@
 #include <klib-macros.h>
 
 
-typedef int spinlock_p;
+
 typedef struct irq_h irq_handle;
 typedef struct task Task;
 typedef struct task_List Task_List;
+
+struct spinlock{
+  const char *name;
+  int lock;
+  int locked;
+  int lock_num;
+  int irq_flag;     //中断中使用的锁不能进行任务调度，用户进程的可以
+  struct task_List *wait_list;
+  struct task_List *waitlist_read;
+  struct task_List *waitlist_head;
+};
+
+struct semaphore {
+  const char *name;
+  struct spinlock slock;
+};
+
 
 enum os_status
 {
@@ -42,3 +59,4 @@ struct task {
   };
   uint8_t stack[8192];
 };
+

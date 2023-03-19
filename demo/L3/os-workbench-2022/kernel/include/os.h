@@ -1,17 +1,13 @@
-#include <common.h>
+//#include <common.h>
 
-struct spinlock{
-  const char *name;
-  int lock;
-  int locked;
-  int lock_num;
-  int irq_flag;     //中断中使用的锁不能进行任务调度，用户进程的可以
-  struct task_List *wait_list;
-  struct task_List *waitlist_read;
-  struct task_List *waitlist_head;
-};
+extern Task *currents[MAX_CPU];
+#define current currents[cpu_current()]
+#define MAXBLOCK 16384   //16*1024
 
-struct semaphore {
-  const char *name;
-  struct spinlock slock;
+enum ops { OP_ALLOC = 0, OP_FREE };
+
+struct malloc_op {
+  enum ops type;
+  size_t sz; 
+  void *addr; 
 };
