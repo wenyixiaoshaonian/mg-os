@@ -50,5 +50,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-L0/os-workbench-2022/amgame/build/
-M0/tree
+demo/L0/os-workbench-2022/amgame/build/
+
