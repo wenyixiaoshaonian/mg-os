@@ -26,7 +26,7 @@ void print_key() {
       case 0x1f + 0x0d:
         if(ry * SIDE < h)
           ry += 1;
-        draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0x000000); // black
+        draw_tile(rx * SIDE, ry * SIDE, SIDE, SIDE, 0xffffff); // black
         break;
       case 0x11 + 0x0d:
         if(ry >0)
