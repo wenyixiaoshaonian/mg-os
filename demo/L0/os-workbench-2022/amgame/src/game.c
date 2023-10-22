@@ -6,7 +6,6 @@ int main(const char *args) {
 
   puts("mainargs = \n");
   puts(args); // make run mainargs=xxx
-  // puts("\"\n");
 
   splash();
 
