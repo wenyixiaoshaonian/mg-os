@@ -4,7 +4,7 @@
 int main(const char *args) {
   ioe_init();
 
-  puts("mainargs = \"");
+  puts("mainargs = \n");
   puts(args); // make run mainargs=xxx
   // puts("\"\n");
 
