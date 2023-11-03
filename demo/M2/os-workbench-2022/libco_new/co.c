@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #define STACK_SIZE 16*1024
+
 #ifdef LOCAL_MACHINE
   #define debug(...) printf(__VA_ARGS__)
 #else
@@ -48,6 +49,7 @@ struct co {
 
 struct co *co_head = NULL;
 struct co *co_cur = NULL;
+struct co *co_run = NULL;
 // reg_info *cur_reg = NULL;
 
 struct co * random_select() {
@@ -134,12 +136,15 @@ void _switch(reg_info *cur_ctx, reg_info *new_ctx)
 }
 
 void _exec() {
-  struct co_list *cur = NULL;
-  co_cur->func(co_cur->arg);
-  co_cur->status = CO_DEAD;
-  debug(">>>=== CO_DEAD...... co_cur = %p\n",co_cur);
+  // struct co_list *cur = NULL;
+  co_run->status = CO_RUNNING;
+  co_run->func(co_run->arg);
+  co_run->status = CO_DEAD;
+  debug(">>>=== CO_DEAD...... co_run = %p\n",co_run);
   //目前一个协程运行完成后，默认切回主程序
-  _switch(co_cur->reg,co_head->reg);
+  struct co *prv_run = co_run;
+  co_run = co_head;
+  _switch(prv_run->reg,co_head->reg);
 }
 
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
@@ -174,12 +179,10 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 #ifdef __x86_64__  
   ret->reg->rbp = ret->stack;
   ret->reg->rsp = ret->stack + STACK_SIZE - (sizeof(void *)*2);
-
   ret->reg->rip = (void *)_exec;
 #elif __i386__
   ret->reg->ebp = ret->stack;
   ret->reg->esp = ret->stack + STACK_SIZE - (sizeof(void *)*2);
-
   ret->reg->eip = (void *)_exec;
 #endif
 
@@ -188,8 +191,10 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 
 void co_wait(struct co *co) {
   while(co->status != CO_DEAD) {
+    struct co *prv_run = co_run;
+    co_run = co;
     //切换寄存器，保存运行状态到当前协程，将要运行的协程状态写入寄存器
-    _switch(co_cur->reg,co->reg);
+    _switch(prv_run->reg,co->reg);
   }
   //remove list
   if(!co->last) {
@@ -210,11 +215,12 @@ void co_wait(struct co *co) {
 }
 
 void co_yield() {
+  struct co *prv_run = co_run;
   //随机选出下一个要运行的协程
-  struct co *next = random_select();
-  if(next) {
+  co_run = random_select();
+  if(co_run) {
     //切换寄存器，保存运行状态到当前协程，将要运行的协程状态写入寄存器
-    _switch(co_cur->reg,next->reg);
+    _switch(prv_run->reg,co_run->reg);
   }
   else {
     debug("no co can run.....\n");
