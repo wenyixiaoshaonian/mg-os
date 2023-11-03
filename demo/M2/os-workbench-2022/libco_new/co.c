@@ -136,11 +136,10 @@ void _switch(reg_info *cur_ctx, reg_info *new_ctx)
 }
 
 void _exec() {
-  // struct co_list *cur = NULL;
   co_run->status = CO_RUNNING;
   co_run->func(co_run->arg);
   co_run->status = CO_DEAD;
-  debug(">>>=== CO_DEAD...... co_run = %p\n",co_run);
+  // debug(">>>=== CO_DEAD...... co_run = %p\n",co_run);
   //目前一个协程运行完成后，默认切回主程序
   struct co *prv_run = co_run;
   co_run = co_head;
@@ -160,6 +159,8 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     main_node->next = NULL;
     co_head = main_node;
     co_cur = co_head;
+    //当前运行的协程
+    co_run = co_head;
   }
   struct co *ret = (struct co*)malloc(sizeof(struct co));
   ret->stack = (uint8_t*)malloc(sizeof(uint8_t) * STACK_SIZE);
@@ -193,7 +194,6 @@ void co_wait(struct co *co) {
   while(co->status != CO_DEAD) {
     struct co *prv_run = co_run;
     co_run = co;
-    //切换寄存器，保存运行状态到当前协程，将要运行的协程状态写入寄存器
     _switch(prv_run->reg,co->reg);
   }
   //remove list
