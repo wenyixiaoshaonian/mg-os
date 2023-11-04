@@ -53,13 +53,17 @@ struct co *co_run = NULL;
 // reg_info *cur_reg = NULL;
 
 struct co * random_select() {
-  int i=1;
+  int i=1,j;
   struct co *ret=NULL;
   for(struct co * co_list=co_head;co_list;co_list=co_list->next){
-    if(co_list->status == CO_DEAD)
+    if(co_list->status == CO_DEAD) {
       continue;
-    if(rand()%i==0){
+    }
+    // srand();
+    j = rand();
+    if(j%i==0){
       ret=co_list;
+      printf(" i = %d j = %d\n",i,j);
     }
     i++;
   }
@@ -190,11 +194,23 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   return ret;
 }
 
+void co_yield() {
+  struct co *prv_run = co_run;
+  //随机选出下一个要运行的协程
+  co_run = random_select();
+  if(co_run) {
+    //切换寄存器，保存运行状态到当前协程，将要运行的协程状态写入寄存器
+    _switch(prv_run->reg,co_run->reg);
+  }
+  else {
+    debug("no co can run.....\n");
+  }
+
+}
+
 void co_wait(struct co *co) {
   while(co->status != CO_DEAD) {
-    struct co *prv_run = co_run;
-    co_run = co;
-    _switch(prv_run->reg,co->reg);
+    co_yield();
   }
   //remove list
   if(!co->last) {
@@ -212,18 +228,4 @@ void co_wait(struct co *co) {
   free(co->reg);
   free(co);
   co = NULL;
-}
-
-void co_yield() {
-  struct co *prv_run = co_run;
-  //随机选出下一个要运行的协程
-  co_run = random_select();
-  if(co_run) {
-    //切换寄存器，保存运行状态到当前协程，将要运行的协程状态写入寄存器
-    _switch(prv_run->reg,co_run->reg);
-  }
-  else {
-    debug("no co can run.....\n");
-  }
-
 }
