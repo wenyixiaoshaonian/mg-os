@@ -63,7 +63,7 @@ struct co * random_select() {
     j = rand();
     if(j%i==0){
       ret=co_list;
-      printf(" i = %d j = %d\n",i,j);
+      // printf(" i = %d j = %d\n",i,j);
     }
     i++;
   }
