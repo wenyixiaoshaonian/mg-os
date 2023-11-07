@@ -11,8 +11,9 @@ void Tproduce() {
     while (count == n) {
       cond_wait(&cv, &lk);
     }
-    printf("("); count++;
-    cond_signal(&cv);
+    printf("( %d\n",count); count++;
+    // cond_signal(&cv);
+    cond_broadcast(&cv);
     mutex_unlock(&lk);
   }
 }
@@ -23,8 +24,9 @@ void Tconsume() {
     while (count == 0) {
       pthread_cond_wait(&cv, &lk);
     }
-    printf(")"); count--;
-    cond_signal(&cv);
+    printf(") %d\n",count); count--;
+    // cond_signal(&cv);
+    cond_broadcast(&cv);
     mutex_unlock(&lk);
   }
 }
