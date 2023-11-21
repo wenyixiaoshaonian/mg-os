@@ -19,6 +19,7 @@ void random_op() {
   if(op[cpu_current()].type == OP_ALLOC) {
     op[cpu_current()].sz = rand() % MAXBLOCK;;
     op[cpu_current()].addr = NULL;
+    return;
   }
   else {
     int num = rand() % 3;
