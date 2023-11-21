@@ -9,8 +9,12 @@ struct malloc_op {
   struct { size_t sz; void *addr; };
 };
 
+extern struct mem_list *list_head[3];
 struct malloc_op op[CPU_NUM];
 void random_op() {
+  struct mem_list *list_tmp = NULL;
+  struct mem_node *node_tmp = NULL;
+
   op[cpu_current()].type = rand() % 2;
   if(op[cpu_current()].type == OP_ALLOC) {
     op[cpu_current()].sz = rand() % MAXBLOCK;;
@@ -18,18 +22,26 @@ void random_op() {
   }
   else {
     int num = rand() % 3;
-    int flag = 0;
-    while(list_head[num] == NULL) {
-      num++;
-      num = num % 3;
-      if(flag >2) {
-        printf("there is no memory need to free!\n");
-        return ;
+    //如果当前链表没有数据，换下一个
+    for(int i = 0;i < 3;i++ ) {
+      if(list_head[num] == NULL) {
+        num++;
+        num = num % 3;
+        break;
       }
-      flag++;
-    }
-    // mem_node node = (mem_node *)list_head[num];
-    // op[cpu_current()].addr = node.ptr;
+      list_tmp = list_head[num];
+      while(list_tmp) {
+        node_tmp = list_tmp->mem;
+        if(node_tmp->used){
+          op[cpu_current()].addr = node_tmp->ptr;
+          node_tmp->used = 0;
+          return;
+        }
+        list_tmp = list_tmp->next;
+      }
+    }   
+    printf("there is no memory need to free!\n");
+    return;
   }
 }
 

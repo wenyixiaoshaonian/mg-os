@@ -1,6 +1,6 @@
-NAME           := kernel
-SRCS           := framework/main.c $(shell find -L ./src/ -name "*.c")
-INC_PATH       := include/ framework/
+NAME           := kernel_new
+SRCS           := ./framework/main.c $(shell find -L ./src/ -name "*.c")
+INC_PATH       := ./include/ ./framework/
 
 export AM_HOME := $(PWD)/../../../L0/os-workbench-2022/abstract-machine
 ifeq ($(ARCH),)

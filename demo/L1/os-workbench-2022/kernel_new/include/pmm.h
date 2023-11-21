@@ -8,26 +8,21 @@ enum {
     nor,
     max
 };
+
+struct mem_node;
 //空闲链表格式
 struct mem_list{
+    struct mem_node *mem;
     struct mem_list *next;
 };
 //内存块格式
-typedef struct {
+struct mem_node{
     struct mem_list *node;
     int size;
     bool used;
     void *ptr;
-}mem_node;
+};
 
-
-
-/*创建三个链表，分别存放三类大小的内存
-    0~128byte
-    128byte~4K
-    4K~16M
-*/
-struct mem_list *list_head[3] = {NULL,NULL,NULL};
 
 // Spinlock
 typedef int spinlock_t;
