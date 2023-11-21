@@ -27,7 +27,3 @@ struct mem_node{
 // Spinlock
 typedef int spinlock_t;
 
-//三个链表对应的锁
-spinlock_t *min_lock;
-spinlock_t *nor_lock;
-spinlock_t *max_lock;

@@ -35,7 +35,6 @@ void random_op() {
         node_tmp = list_tmp->mem;
         if(node_tmp->used){
           op[cpu_current()].addr = node_tmp->ptr;
-          node_tmp->used = 0;
           return;
         }
         list_tmp = list_tmp->next;
@@ -46,17 +45,19 @@ void random_op() {
   }
 }
 
-void alloc_check(size_t org,size_t dst) {
-  if(org != dst)
-    printf("malloc size is wrong\n");
-}
-
 void stress_test() {
   while (1) {
     random_op();
     switch (op[cpu_current()].type) {
-      case OP_ALLOC: pmm->alloc(op[cpu_current()].sz); break;
-      case OP_FREE:  pmm->free(op[cpu_current()].addr); break;
+      case OP_ALLOC: 
+        if(pmm->alloc(op[cpu_current()].sz) == NULL)
+          printf("%d alloc failed\n",cpu_current());
+        else
+          printf("%d  alloc success size = %ld\n",cpu_current(),op[cpu_current()].sz);
+        break; //分配一块随即大小的内存
+      case OP_FREE:  
+        pmm->free(op[cpu_current()].addr); 
+        break;  //从链表中选择一块被使用的内存释放
     }
   }
 }
@@ -69,10 +70,7 @@ static void os_run() {
   for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
-  while (1) {
-	//todo test
-	
-	};
+  stress_test();
 }
 
 MODULE_DEF(os) = {
