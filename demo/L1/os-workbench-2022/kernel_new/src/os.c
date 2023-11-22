@@ -3,7 +3,7 @@
 #define CPU_NUM 4
 #define MAXBLOCK 16384   //16*1024
 
-enum ops { OP_ALLOC = 1, OP_FREE };
+enum ops { OP_ALLOC = 0, OP_FREE };
 struct malloc_op {
   enum ops type;
   struct { size_t sz; void *addr; };
@@ -16,6 +16,7 @@ void random_op() {
   struct mem_node *node_tmp = NULL;
 
   op[cpu_current()].type = rand() % 2;
+  // printf(">>=== %d\n",op[cpu_current()].type);
   if(op[cpu_current()].type == OP_ALLOC) {
     op[cpu_current()].sz = rand() % MAXBLOCK;;
     op[cpu_current()].addr = NULL;
@@ -28,7 +29,7 @@ void random_op() {
       if(list_head[num] == NULL) {
         num++;
         num = num % 3;
-        break;
+        continue;
       }
       list_tmp = list_head[num];
       while(list_tmp) {
@@ -40,7 +41,8 @@ void random_op() {
         list_tmp = list_tmp->next;
       }
     }   
-    printf("there is no memory need to free!\n");
+    op[cpu_current()].addr = NULL;
+    // printf("there is no memory need to free!\n");
     return;
   }
 }
@@ -50,13 +52,17 @@ void stress_test() {
     random_op();
     switch (op[cpu_current()].type) {
       case OP_ALLOC: 
+        // printf("%d  alloc %ld\n",cpu_current(),op[cpu_current()].sz);
         if(pmm->alloc(op[cpu_current()].sz) == NULL)
-          printf("%d alloc failed\n",cpu_current());
-        else
-          printf("%d  alloc success size = %ld\n",cpu_current(),op[cpu_current()].sz);
+          // printf("%d alloc failed\n",cpu_current());
+        // else
+        //   printf("%d alloc success\n",cpu_current());
+          
         break; //分配一块随即大小的内存
       case OP_FREE:  
-        pmm->free(op[cpu_current()].addr); 
+        // printf("%d  free \n",cpu_current());
+        if(op[cpu_current()].addr)
+          pmm->free(op[cpu_current()].addr); 
         break;  //从链表中选择一块被使用的内存释放
     }
   }
