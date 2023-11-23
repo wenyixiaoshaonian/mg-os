@@ -15,12 +15,13 @@ spinlock_t *alloc_lock;
     128byte~4K
     4K~16M
 */
-struct mem_list *list_head[3] = {NULL,NULL,NULL};
-struct mem_list *list_cur[3] = {NULL,NULL,NULL};
+struct mem_node *list_head[3] = {NULL,NULL,NULL};
+struct mem_node *list_cur[3] = {NULL,NULL,NULL};
 // int mem_used = 0;
 void * ptr;
 static void *kalloc(size_t size) {
-  struct mem_list *list_tmp = NULL;
+  // struct mem_list *list_tmp = NULL;
+  struct mem_node *list_tmp = NULL;
   struct mem_node *node_tmp = NULL;
   int number;
   int alloc_size = 0;
@@ -41,22 +42,28 @@ static void *kalloc(size_t size) {
     printf("size is too big!!\n");
     return NULL;
   }
+  printf(">>==11\n");
   lock(tmp_lock);
   if(list_head[number]) {
     list_tmp = list_head[number];
+    printf(">>==aa %d\n",number);
     while(list_tmp) {
-      node_tmp = list_tmp->mem;
-      if(node_tmp->size == size && !node_tmp->used) {
-        node_tmp->used = 1;
+      if(list_tmp > 0x07f00000)
+        printf("list_tmp = %p size = %d \n",list_tmp,list_tmp->size);
+      // node_tmp = list_tmp->mem;
+      if(list_tmp->size == size && !list_tmp->used) {
+        list_tmp->used = 1;
+        printf(">>==22\n");
         unlock(tmp_lock);
-        return node_tmp->ptr;
+        return list_tmp->ptr;
       }
       list_tmp = list_tmp->next;
     }
   }
   unlock(tmp_lock);
+  printf(">>==33\n");
   lock(alloc_lock);
-  alloc_size = sizeof(struct mem_node) + sizeof(struct mem_list) + size;
+  alloc_size = sizeof(struct mem_node) + size;
   if(ptr + alloc_size > heap.end) {
     printf("Insufficient memory space!\n");
     unlock(tmp_lock);
@@ -64,26 +71,26 @@ static void *kalloc(size_t size) {
   }
   // mem_used +=alloc_size;
   printf(" start = 0x%p  size = 0x%x\n",ptr,alloc_size);
-  //申请空间分布  head -- body -- list
+  //申请空间分布  head -- body
   node_tmp = (struct mem_node *)ptr;
   node_tmp->ptr = (void*)((char *)ptr + sizeof(struct mem_node));
-  node_tmp->node = (struct mem_list *)((char *)ptr + sizeof(struct mem_node) + size);
+  // node_tmp->node = (struct mem_list *)((char *)ptr + sizeof(struct mem_node) + size);
   ptr += alloc_size;
   unlock(alloc_lock);
 
   lock(tmp_lock);
-  node_tmp->node->mem = (struct mem_list *)node_tmp;
-  node_tmp->node->next = NULL;
-  list_tmp = node_tmp->node;
-  // printf(">>==00 node_tmp = %p tmp = %p  list_head[%d] = %p\n",node_tmp,list_tmp,number,list_head[number]);
+  // node_tmp->node->mem = (struct mem_list *)node_tmp;
+  // node_tmp->node->next = NULL;
+  // list_tmp = node_tmp->node;
+  printf(">>==00 node_tmp = %p  list_head[%d] = %p\n",node_tmp,number,list_head[number]);
   if(!list_head[number]) {
-    list_head[number] = list_tmp;
-    list_cur[number] = list_tmp;
+    list_head[number] = node_tmp;
+    list_cur[number] = node_tmp;
     // printf(">>==11 list_head[%d] = %p\n",number,list_head[number]);
   }
   else {
-    list_cur[number]->next = list_tmp;
-    list_cur[number] = list_tmp;
+    list_cur[number]->next = node_tmp;
+    list_cur[number] = node_tmp;
   }
   // printf(">>==33 list_head[%d] = %p\n",number,list_head[number]);
   node_tmp->size = size;
@@ -96,7 +103,7 @@ static void *kalloc(size_t size) {
 static void kfree(void *ptr) {
   struct mem_node *node_tmp = NULL;
   spinlock_t *tmp_lock;
-  // printf(">>==55 ptr = %p  size = 0x%x \n",ptr,sizeof(struct mem_node));
+  printf(">>==55 ptr = %p  size = 0x%x \n",ptr,sizeof(struct mem_node));
   node_tmp = (struct mem_node *)((char *)(ptr) - sizeof(struct mem_node));
   int size = node_tmp->size;
   if(size <= 128) {
@@ -108,7 +115,7 @@ static void kfree(void *ptr) {
   else if(size <= 16*1024*1024) {
     tmp_lock = max_lock;
   }
-  // printf("dd  %p size = 0x%x\n",node_tmp,size);
+  printf("dd  %p size = 0x%x\n",node_tmp,size);
   lock(tmp_lock);
   node_tmp->used = 0;
   unlock(tmp_lock);

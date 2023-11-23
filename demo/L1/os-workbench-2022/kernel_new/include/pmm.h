@@ -11,16 +11,17 @@ enum {
 
 struct mem_node;
 //空闲链表格式
-struct mem_list{
-    struct mem_node *mem;
-    struct mem_list *next;
-};
+// struct mem_list{
+//     struct mem_node *mem;
+//     struct mem_list *next;
+// };
 //内存块格式
 struct mem_node{
-    struct mem_list *node;
+    // struct mem_list *node;
     int size;
     bool used;
     void *ptr;
+    struct mem_node *next;
 };
 
 

@@ -9,11 +9,12 @@ struct malloc_op {
   struct { size_t sz; void *addr; };
 };
 
-extern struct mem_list *list_head[3];
+extern struct mem_node *list_head[3];
 struct malloc_op op[CPU_NUM];
 void random_op() {
-  struct mem_list *list_tmp = NULL;
-  struct mem_node *node_tmp = NULL;
+  // struct mem_list *list_tmp = NULL;
+  struct mem_node *list_tmp = NULL;
+  // struct mem_node *node_tmp = NULL;
 
   op[cpu_current()].type = rand() % 2;
   // printf(">>=== %d\n",op[cpu_current()].type);
@@ -33,9 +34,9 @@ void random_op() {
       }
       list_tmp = list_head[num];
       while(list_tmp) {
-        node_tmp = list_tmp->mem;
-        if(node_tmp->used){
-          op[cpu_current()].addr = node_tmp->ptr;
+        // node_tmp = list_tmp->mem;
+        if(list_tmp->used){
+          op[cpu_current()].addr = list_tmp->ptr;
           return;
         }
         list_tmp = list_tmp->next;
@@ -52,7 +53,7 @@ void stress_test() {
     random_op();
     switch (op[cpu_current()].type) {
       case OP_ALLOC: 
-        // printf("%d  alloc %ld\n",cpu_current(),op[cpu_current()].sz);
+        printf("%d  alloc %ld\n",cpu_current(),op[cpu_current()].sz);
         if(pmm->alloc(op[cpu_current()].sz) == NULL)
           // printf("%d alloc failed\n",cpu_current());
         // else
