@@ -53,11 +53,11 @@ void stress_test() {
     random_op();
     switch (op[cpu_current()].type) {
       case OP_ALLOC: 
-        printf("%d  alloc %ld\n",cpu_current(),op[cpu_current()].sz);
+        // printf("%d  alloc %ld\n",cpu_current(),op[cpu_current()].sz);
         if(pmm->alloc(op[cpu_current()].sz) == NULL)
-          // printf("%d alloc failed\n",cpu_current());
-        // else
-        //   printf("%d alloc success\n",cpu_current());
+          printf("%d alloc failed\n",cpu_current());
+        else
+          printf("%d alloc success\n",cpu_current());
           
         break; //分配一块随即大小的内存
       case OP_FREE:  
